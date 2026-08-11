@@ -28,6 +28,11 @@ class Device(Base):
     last_longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     gps_available: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Cached from the most recent fix -- null until a real GPS module
+    # reports these (mock data never sets them).
+    last_fix_quality: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_satellites: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

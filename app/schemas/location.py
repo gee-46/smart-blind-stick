@@ -10,6 +10,10 @@ class LocationOut(BaseModel):
     device_id: str
     latitude: float
     longitude: float
+    altitude: float | None = None
+    speed_kmh: float | None = None
+    satellites: int | None = None
+    fix_quality: int | None = None
     timestamp: datetime
 
 
@@ -18,4 +22,8 @@ class LocationHistoryItem(BaseModel):
 
     latitude: float
     longitude: float
+    altitude: float | None = None
+    speed_kmh: float | None = None
+    satellites: int | None = None
+    fix_quality: int | None = None
     timestamp: datetime

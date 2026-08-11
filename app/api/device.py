@@ -37,4 +37,6 @@ def get_device_status(device_id: str, db: Session = Depends(get_db)):
         battery=device.battery,
         gps_available=device.gps_available,
         last_seen=device.last_seen,
+        last_fix_quality=device.last_fix_quality,
+        last_satellites=device.last_satellites,
     )

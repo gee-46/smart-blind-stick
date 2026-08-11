@@ -23,6 +23,13 @@ class Location(Base):
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
 
+    # Populated when the fix comes from a real GPS module. Null for mock/
+    # simulated data or any client that doesn't report them.
+    altitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    speed_kmh: Mapped[float | None] = mapped_column(Float, nullable=True)
+    satellites: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fix_quality: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )

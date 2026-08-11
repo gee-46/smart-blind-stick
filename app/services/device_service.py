@@ -37,11 +37,17 @@ def upsert_device_data(db: Session, data: DeviceDataIn) -> Device:
     device.last_longitude = data.longitude
     device.gps_available = True
     device.last_seen = now
+    device.last_fix_quality = data.fix_quality
+    device.last_satellites = data.satellites
 
     location = Location(
         device_id=data.device_id,
         latitude=data.latitude,
         longitude=data.longitude,
+        altitude=data.altitude,
+        speed_kmh=data.speed_kmh,
+        satellites=data.satellites,
+        fix_quality=data.fix_quality,
         timestamp=now,
     )
     db.add(location)
