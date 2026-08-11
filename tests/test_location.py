@@ -39,6 +39,54 @@ def test_location_history_limit(client, registered_device):
     assert len(response.json()) == 1
 
 
+def test_real_gps_fields_flow_through_checkin_to_location(client, registered_device):
+    """
+    A check-in from real GPS hardware (scripts/gps_device_client.py)
+    includes altitude/speed/satellites/fix_quality -- confirm these are
+    stored and returned, not just latitude/longitude.
+    """
+    payload = {
+        "device_id": registered_device,
+        "battery": 88,
+        "latitude": 15.86,
+        "longitude": 74.51,
+        "status": "moving",
+        "altitude": 545.4,
+        "speed_kmh": 12.3,
+        "satellites": 8,
+        "fix_quality": 1,
+    }
+    response = client.post("/api/device/data", json=payload)
+    assert response.status_code == 200
+
+    location = client.get(f"/api/location/{registered_device}").json()
+    assert location["altitude"] == 545.4
+    assert location["speed_kmh"] == 12.3
+    assert location["satellites"] == 8
+    assert location["fix_quality"] == 1
+
+    status = client.get(f"/api/device/status/{registered_device}").json()
+    assert status["last_fix_quality"] == 1
+    assert status["last_satellites"] == 8
+
+
+def test_checkin_without_real_gps_fields_still_works(client):
+    """Mock/simulated check-ins that omit the real-GPS fields must still work."""
+    payload = {
+        "device_id": "STICK_MOCK_ONLY",
+        "battery": 90,
+        "latitude": 15.85,
+        "longitude": 74.50,
+        "status": "safe",
+    }
+    response = client.post("/api/device/data", json=payload)
+    assert response.status_code == 200
+
+    location = client.get("/api/location/STICK_MOCK_ONLY").json()
+    assert location["altitude"] is None
+    assert location["satellites"] is None
+
+
 def test_location_unknown_device_returns_404(client):
     response = client.get("/api/location/DOES_NOT_EXIST")
     assert response.status_code == 404

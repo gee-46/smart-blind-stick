@@ -168,6 +168,52 @@ no hardware or running server is required. Covers device check-in/status,
 GPS storage/history, event creation/filtering/retrieval, SOS, and
 validation errors (invalid data, unknown device).
 
+## Real GPS Hardware
+
+For an actual physical GPS module (NEO-6M or any NMEA-0183-compatible
+chip) on a Raspberry Pi or microcontroller, use
+`scripts/gps_device_client.py` instead of the mock simulator. It's a
+drop-in hardware counterpart — it posts to the exact same
+`/api/device/data` endpoint, so no backend changes are needed to go from
+mock to real hardware.
+
+**Wiring** (Raspberry Pi + NEO-6M example — see the full docstring in
+`scripts/gps_reader.py` for exact pin numbers and `raspi-config` steps
+to free up the UART):
+
+```text
+GPS module      Raspberry Pi
+VCC        ->   5V (check your module's voltage — some need 3.3V)
+GND        ->   GND
+TX         ->   GPIO15 / RXD
+RX         ->   GPIO14 / TXD
+```
+
+**Run it:**
+
+```bash
+python scripts/gps_device_client.py --device-id STICK_001
+# custom serial port / baud rate / backend location:
+python scripts/gps_device_client.py --port /dev/ttyUSB0 --baud 9600 --base-url http://192.168.1.50:8000
+```
+
+It reads real NMEA sentences off the serial port (`scripts/gps_reader.py`
+parses GGA for position/altitude/satellites/fix-quality, and RMC for
+ground speed), and only sends a check-in once it has an actual fix — if
+the module is still acquiring satellites (common for the first
+30–60 seconds, especially indoors), it logs "No GPS fix yet" and waits
+rather than sending stale or zeroed coordinates.
+
+The extra fields (`altitude`, `speed_kmh`, `satellites`, `fix_quality`)
+are optional on `/api/device/data` and are stored on every `Location`
+row and cached on the `Device` row — the mock simulator simply omits
+them, so both paths work against the same backend and same tests.
+
+**Testing without hardware attached:** `tests/test_gps_reader.py`
+verifies the NMEA parsing itself (valid fix, no-fix, corrupted
+checksums, speed attachment) using a fake in-memory serial stream — no
+physical module required to run `pytest`.
+
 ## Mock Device Simulator
 
 Since no physical hardware exists yet, `scripts/simulate_device.py`
