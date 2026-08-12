@@ -23,6 +23,12 @@ class Device(Base):
     battery: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
+    # SHA-256 hash of the device's API key (Milestone 2: authentication).
+    # Null for devices that have never called POST /api/device/register --
+    # e.g. devices only ever used through the original unauthenticated
+    # /api/device/data check-in endpoint, which is untouched by this.
+    api_key_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
     # Cached "last known" location so status checks don't need a join.
     last_latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     last_longitude: Mapped[float | None] = mapped_column(Float, nullable=True)

@@ -49,3 +49,24 @@ class DeviceStatusResponse(BaseModel):
     last_seen: datetime | None
     last_fix_quality: int | None = None
     last_satellites: int | None = None
+
+
+class DeviceRegisterIn(BaseModel):
+    """Request to register a device and issue it an API key (Milestone 2)."""
+
+    device_id: str = Field(..., min_length=1, max_length=64, examples=["STICK_001"])
+
+
+class DeviceRegisterOut(BaseModel):
+    """
+    Response to a successful registration.
+
+    `api_key` is the ONLY time the plaintext key is ever returned -- only
+    its hash is stored server-side afterward. The caller (device
+    provisioning tool / installer) must save it now; it cannot be
+    recovered later, only rotated via a new registration.
+    """
+
+    device_id: str
+    api_key: str
+    message: str = "Store this API key securely. It will not be shown again."
