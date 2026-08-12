@@ -1,292 +1,703 @@
-# Smart Blind Stick — Mobile & IoT Backend
+# 🦯 Smart Blind Stick
 
-Python backend for the **Smart Blind Stick Using IoT, Sensors, GPS and AI**
-final-year project. This module (`feature/mobile-iot`) provides the
-backend foundation — device communication, GPS tracking, event ingestion,
-and SOS handling — that the other three modules connect to:
+## AI-Powered Smart Mobility System Using IoT, Sensors, GPS & Computer Vision
 
-- `feature/sensor-fusion` — ultrasonic, IR, IMU processing
-- `feature/ai-vision` — camera + object detection
-- `feature/safety-emergency` — risk assessment, alerts, fall detection, SOS
+> An intelligent assistive mobility system designed to improve the safety, independence, and navigation of visually impaired individuals through real-time sensing, AI-based object detection, GPS tracking, and emergency assistance.
 
-This module does **not** implement those three modules. It only exposes
-the API contract they will send data to.
+---
 
-## Features
+## 📌 Overview
 
-- Device communication (check-in: battery, GPS, status)
-- Device online/offline monitoring
-- GPS location tracking + history
-- Generic event ingestion (sensor fusion / AI vision / safety engine)
-- Incident history with filtering (event type, risk level, date)
-- SOS endpoint with a swappable notification-service abstraction
-- Mock device simulator (test the whole backend without hardware)
-- Full REST API with interactive docs
-- Automated tests (pytest) — no hardware required
+The **Smart Blind Stick** is an upgraded mobility aid that combines traditional obstacle detection with modern technologies such as:
 
-## Architecture
+* Artificial Intelligence
+* Computer Vision
+* IoT
+* Ultrasonic Sensors
+* IR Sensors
+* IMU
+* GPS
+* Real-Time Event Processing
+* Safety & Risk Assessment
+* Emergency Assistance
+
+The system is designed to detect obstacles at different levels, understand the surrounding environment, estimate object movement and approximate distance, track the user's location, and provide intelligent alerts.
+
+Instead of simply detecting:
+
+> **"Obstacle detected"**
+
+the system aims to understand:
+
+> **What is the object? Where is it? How far is it? Is it moving? Is it approaching? How dangerous is the situation?**
+
+---
+
+# ❗ Problem Statement
+
+Traditional white canes are useful for detecting obstacles near ground level but have limitations when dealing with:
+
+* Head-level obstacles
+* Overhanging objects
+* Moving vehicles
+* Bicycles and motorcycles
+* Objects outside the physical reach of the cane
+* Complex environments requiring contextual understanding
+
+Traditional canes also do not provide:
+
+* Real-time GPS tracking
+* Emergency SOS functionality
+* Guardian monitoring
+* AI-based environmental understanding
+* Intelligent risk assessment
+
+Therefore, there is a need for an affordable and intelligent assistive mobility system that combines **physical sensing, computer vision, GPS, IoT, and safety intelligence**.
+
+---
+
+# 💡 Proposed Solution
+
+The Smart Blind Stick combines multiple sensing and intelligence layers into a single system.
 
 ```text
-Smart Stick (hardware or simulator)
-            |
-            v
-        FastAPI  (app/api/*.py)      <- thin HTTP layer, validation via Pydantic
-            |
-            v
-        Services (app/services/*.py) <- business logic
-            |
-            v
-        SQLAlchemy models (app/models/*.py)
-            |
-            v
-        SQLite  (swap DATABASE_URL for PostgreSQL later — no code changes)
+                         SMART BLIND STICK
+                                │
+             ┌──────────────────┼──────────────────┐
+             │                  │                  │
+             ▼                  ▼                  ▼
+       Sensor Fusion        AI Vision          GPS + IoT
+             │                  │                  │
+             └──────────────────┼──────────────────┘
+                                ▼
+                         Safety Engine
+                                │
+                    ┌───────────┼───────────┐
+                    ▼           ▼           ▼
+                Vibration     Audio        SOS
+                    │           │           │
+                    └───────────┼───────────┘
+                                ▼
+                              USER
 ```
 
-Routes never touch the database directly — everything goes through the
-service layer, so business logic is testable and reusable independent of
-FastAPI.
+The system combines information from multiple sources before generating safety decisions.
 
-## Project Structure
+---
+
+# 🎯 Objectives
+
+* Detect obstacles at multiple heights and distances.
+* Identify objects using computer vision.
+* Estimate object direction and approximate distance.
+* Track objects across frames.
+* Detect moving and approaching objects.
+* Combine AI and sensor information.
+* Generate intelligent safety decisions.
+* Provide vibration and audio alerts.
+* Track the user's GPS location.
+* Provide emergency SOS functionality.
+* Maintain an affordable and scalable architecture.
+
+---
+
+# 🚀 Key Features
+
+## 1. AI Vision
+
+The AI Vision module provides real-time environmental understanding.
+
+### Implemented
+
+* Real-time camera input
+* Webcam support
+* Video input
+* Image input
+* Mock input
+* YOLOv8n object detection
+* Confidence filtering
+* Class filtering
+* Object tracking
+* Stable tracking IDs
+* LEFT / CENTER / RIGHT direction estimation
+* Monocular distance estimation
+* Movement detection
+* Approaching vehicle detection
+* Structured Pydantic output
+* Backend event adapter
+
+### Mobility-Relevant Classes
+
+The current implementation uses relevant COCO classes:
+
+* Person
+* Bicycle
+* Car
+* Motorcycle
+* Bus
+* Truck
+* Traffic Light
+* Stop Sign
+* Bench
+* Dog
+* Cat
+* Chair
+
+### AI Vision Pipeline
+
+```text
+Camera
+   ↓
+Frame Capture
+   ↓
+Preprocessing
+   ↓
+YOLOv8n Detection
+   ↓
+Confidence Filtering
+   ↓
+Object Tracking
+   ↓
+Direction Estimation
+   ↓
+Distance Estimation
+   ↓
+Movement Analysis
+   ↓
+Approaching Object Detection
+   ↓
+Structured AI Output
+   ↓
+Safety Engine
+```
+
+---
+
+# 2. Sensor Fusion
+
+The Sensor Fusion module will combine data from:
+
+* Ultrasonic sensors
+* IR sensors
+* IMU
+* Distance measurements
+* Direction information
+
+```text
+Ultrasonic
+     +
+IR Sensors
+     +
+IMU
+     ↓
+Sensor Fusion
+     ↓
+Unified Environmental Information
+```
+
+### Status
+
+**Pending**
+
+---
+
+# 3. Safety & Risk Assessment
+
+The Safety Engine will combine information from:
+
+* AI Vision
+* Sensor Fusion
+* Distance
+* Direction
+* Movement
+* GPS/context
+
+The final system will classify situations as:
+
+```text
+SAFE
+LOW
+MEDIUM
+HIGH
+CRITICAL
+```
+
+### Important Design Principle
+
+AI Vision provides an advisory **`risk_hint`**.
+
+It does **not** independently determine the final `risk_level`.
+
+The Safety Engine will make the final decision using multiple inputs.
+
+### Status
+
+**Pending**
+
+---
+
+# 4. GPS Tracking
+
+The backend currently supports:
+
+* Real-time location
+* Location history
+* GPS availability
+* Last known location
+* Latitude/longitude tracking
+* Mock GPS
+* Real GPS client support
+
+Compatible GPS hardware can provide NMEA-0183 data to the backend.
+
+### Status
+
+**Backend implemented; physical hardware integration pending.**
+
+---
+
+# 5. Emergency SOS
+
+The system provides an SOS mechanism for emergency situations.
+
+Potential triggers:
+
+* Manual SOS button
+* Fall detection
+* Critical safety event
+* Automatic emergency trigger
+
+SOS information can include:
+
+* Device ID
+* Location
+* Emergency reason
+* Timestamp
+
+### Status
+
+**Backend SOS foundation implemented; complete safety/emergency integration pending.**
+
+---
+
+# 6. Guardian / Mobile Application
+
+A future guardian/mobile interface will provide:
+
+* Live location
+* Device status
+* Emergency notifications
+* Event history
+* Safety status
+* Guardian monitoring
+
+### Status
+
+**Pending**
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                         SMART BLIND STICK
+                                │
+              ┌─────────────────┼─────────────────┐
+              │                 │                 │
+              ▼                 ▼                 ▼
+       Ultrasonic / IR       Camera             GPS
+              │                 │                 │
+              ▼                 ▼                 │
+       Sensor Fusion        AI Vision              │
+              │                 │                 │
+              └─────────────────┼─────────────────┘
+                                ▼
+                         Safety Engine
+                                │
+                    ┌───────────┼───────────┐
+                    │           │           │
+                    ▼           ▼           ▼
+                 Vibration    Audio        SOS
+                                │
+                                ▼
+                         FastAPI Backend
+                                │
+                    ┌───────────┼───────────┐
+                    ▼           ▼           ▼
+                 Database    GPS Data     Events
+                                │
+                                ▼
+                       Guardian / Mobile
+```
+
+---
+
+# 🔄 Safety Decision Flow
+
+```text
+AI Vision
+    │
+    ├── Object
+    ├── Distance
+    ├── Direction
+    ├── Movement
+    └── Confidence
+           │
+           ▼
+     Sensor Fusion
+           │
+    ┌──────┼──────┐
+    ▼      ▼      ▼
+Ultrasonic IR     IMU
+    │      │      │
+    └──────┼──────┘
+           ▼
+      Safety Engine
+           │
+           ▼
+     Risk Assessment
+           │
+    ┌──────┼──────┐
+    ▼      ▼      ▼
+Vibration Audio   SOS
+```
+
+---
+
+# 🧩 Backend Architecture
+
+The backend follows a layered architecture:
+
+```text
+API Layer
+    ↓
+Service Layer
+    ↓
+Database Models
+    ↓
+SQLite / PostgreSQL
+```
+
+FastAPI routes remain thin while business logic is handled by service modules.
+
+This allows the AI Vision, Sensor Fusion, and Safety Engine modules to communicate through defined interfaces.
+
+---
+
+# 🛠️ Technology Stack
+
+### AI / Machine Learning
+
+* Python
+* PyTorch
+* Ultralytics YOLO
+* YOLOv8n
+* Computer Vision
+* Object Tracking
+* Monocular Distance Estimation
+
+### Computer Vision
+
+* OpenCV
+* NumPy
+
+### Backend
+
+* FastAPI
+* Pydantic
+* SQLAlchemy
+
+### Database
+
+* SQLite
+* PostgreSQL-ready architecture
+
+### IoT / Hardware
+
+* ESP32 / Raspberry Pi
+* Ultrasonic Sensors
+* IR Sensors
+* IMU
+* GPS
+* Camera
+* Vibration Motor
+* Buzzer / Audio
+
+### Testing
+
+* pytest
+* FastAPI TestClient
+* Mock data
+* Device simulator
+
+### Development
+
+* Git
+* GitHub
+* VS Code
+* Python Virtual Environment
+
+---
+
+# 📂 Project Structure
 
 ```text
 smart-blind-stick/
+│
 ├── app/
-│   ├── main.py              # FastAPI app, router wiring, startup
-│   ├── config.py            # Environment-based settings
-│   ├── api/                 # HTTP route handlers
+│   ├── main.py
+│   ├── config.py
+│   │
+│   ├── api/
 │   │   ├── device.py
 │   │   ├── location.py
 │   │   ├── events.py
 │   │   └── sos.py
-│   ├── models/               # SQLAlchemy ORM models
-│   │   ├── device.py
-│   │   ├── location.py
-│   │   └── event.py          # Event + SOSEvent
-│   ├── schemas/               # Pydantic request/response schemas
+│   │
+│   ├── models/
 │   │   ├── device.py
 │   │   ├── location.py
 │   │   └── event.py
-│   ├── services/               # Business logic
+│   │
+│   ├── schemas/
+│   │   ├── device.py
+│   │   ├── location.py
+│   │   └── event.py
+│   │
+│   ├── services/
 │   │   ├── device_service.py
 │   │   ├── location_service.py
 │   │   ├── event_service.py
 │   │   └── notification_service.py
+│   │
 │   └── database/
-│       ├── base.py           # Declarative Base
-│       └── database.py       # Engine, session, get_db, init_db
-├── tests/                     # pytest test suite
+│       ├── base.py
+│       └── database.py
+│
+├── ai_vision/
+│   ├── camera/
+│   ├── detection/
+│   ├── estimation/
+│   ├── schemas/
+│   ├── services/
+│   └── config.py
+│
+├── tests/
+│
 ├── scripts/
-│   └── simulate_device.py    # Mock device simulator
+│   ├── simulate_device.py
+│   ├── gps_reader.py
+│   └── gps_device_client.py
+│
+├── models/
+│   └── README.md
+│
+├── integration_notes.md
+├── requirements.txt
 ├── .env.example
 ├── .gitignore
-├── requirements.txt
 ├── README.md
 └── run.py
 ```
 
-## Installation
+---
 
-```bash
-python -m venv .venv
+# 🌿 GitHub Branch Structure
+
+```text
+main
+ │
+ └── develop
+      │
+      ├── feature/mobile-iot
+      │
+      ├── feature/ai-vision
+      │
+      ├── feature/sensor-fusion
+      │
+      └── feature/safety-emergency
 ```
 
-Activate it:
+| Branch                     | Responsibility                                                 |
+| -------------------------- | -------------------------------------------------------------- |
+| `feature/mobile-iot`       | Backend, IoT communication, GPS, events, SOS                   |
+| `feature/ai-vision`        | Computer vision and AI                                         |
+| `feature/sensor-fusion`    | Ultrasonic, IR, IMU and sensor processing                      |
+| `feature/safety-emergency` | Risk assessment, alerts, fall detection and emergency handling |
 
-- Windows: `.venv\Scripts\activate`
-- macOS/Linux: `source .venv/bin/activate`
+---
 
-Install dependencies:
+# ✅ Work Completed
 
-```bash
-pip install -r requirements.txt
-```
+## Backend / Mobile-IoT
 
-Copy the environment file (optional — sensible defaults are built in):
+* [x] FastAPI backend
+* [x] SQLite + SQLAlchemy
+* [x] Device communication
+* [x] Device status monitoring
+* [x] GPS location tracking
+* [x] Location history
+* [x] Event ingestion
+* [x] Event filtering
+* [x] SOS endpoint
+* [x] Notification abstraction
+* [x] Mock device simulator
+* [x] Swagger documentation
+* [x] Real GPS client support
+* [x] Automated testing
+* [x] **35/35 backend tests passing**
 
-```bash
-cp .env.example .env
-```
+## AI Vision
 
-## Running
+* [x] Camera input
+* [x] Webcam / video / image / mock modes
+* [x] YOLOv8n
+* [x] Confidence filtering
+* [x] Class filtering
+* [x] Object tracking
+* [x] Stable track IDs
+* [x] Direction estimation
+* [x] Monocular distance estimation
+* [x] Movement detection
+* [x] Approaching vehicle detection
+* [x] Structured Pydantic output
+* [x] Backend adapter
+* [x] **94/94 AI Vision tests passing**
+* [x] AI Vision documentation
 
-```bash
-python run.py
-```
+---
 
-The API will be available at `http://127.0.0.1:8000`, and interactive
-API docs (Swagger UI) at:
+# 📊 Current Development Status
+
+| Module                 | Status                          |
+| ---------------------- | ------------------------------- |
+| Backend / IoT          | 🟢 Core implementation complete |
+| AI Vision              | 🟢 Core implementation complete |
+| Sensor Fusion          | 🔴 Pending                      |
+| Safety & Emergency     | 🔴 Pending                      |
+| Hardware Integration   | 🔴 Pending                      |
+| Mobile / Guardian App  | 🔴 Pending                      |
+| End-to-End Integration | 🔴 Pending                      |
+
+### Overall Project
+
+**Approximately 40% complete**
+
+The current project has two major software foundations:
+
+> **Backend / IoT + AI Vision**
+
+The remaining work focuses mainly on sensor intelligence, safety decision-making, hardware integration, mobile/guardian functionality, and complete system validation.
+
+---
+
+# 🔜 Pending Work
+
+## Sensor Fusion
+
+* [ ] Ultrasonic sensor integration
+* [ ] IR sensor integration
+* [ ] IMU integration
+* [ ] Multi-sensor obstacle representation
+* [ ] Sensor confidence handling
+* [ ] Real hardware testing
+
+## Safety & Emergency
+
+* [ ] Risk assessment engine
+* [ ] Multi-source risk calculation
+* [ ] Alert priority system
+* [ ] Fall detection
+* [ ] Emergency event handling
+* [ ] Automatic SOS triggers
+* [ ] Notification integration
+
+## Hardware
+
+* [ ] ESP32 / Raspberry Pi integration
+* [ ] Camera mounting
+* [ ] Sensor mounting
+* [ ] GPS hardware
+* [ ] Vibration motor
+* [ ] Buzzer / audio
+* [ ] Rechargeable battery
+* [ ] 3D-printed enclosure
+* [ ] Physical prototype
+
+## Mobile / Guardian Application
+
+* [ ] Live location
+* [ ] Device status
+* [ ] Emergency notifications
+* [ ] Event history
+* [ ] Guardian monitoring
+* [ ] Backend integration
+
+## Final Integration
+
+* [ ] AI Vision + Sensor Fusion
+* [ ] AI Vision + Safety Engine
+* [ ] Sensor Fusion + Safety Engine
+* [ ] Safety Engine + Backend
+* [ ] Backend + Mobile App
+* [ ] Hardware + Software
+* [ ] End-to-end testing
+* [ ] Real-world navigation testing
+* [ ] Performance benchmarking
+* [ ] Final deployment
+
+---
+
+# 🔌 API
+
+The backend currently exposes:
+
+| Method | Endpoint                            | Description      |
+| ------ | ----------------------------------- | ---------------- |
+| POST   | `/api/device/data`                  | Device check-in  |
+| GET    | `/api/device/status/{device_id}`    | Device status    |
+| GET    | `/api/location/{device_id}`         | Latest location  |
+| GET    | `/api/location/{device_id}/history` | Location history |
+| POST   | `/api/events`                       | Event ingestion  |
+| GET    | `/api/events/{device_id}`           | Event history    |
+| POST   | `/api/sos`                          | SOS              |
+| GET    | `/health`                           | Health check     |
+
+Swagger documentation:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## API Endpoints
+---
 
-| Method | Endpoint                                | Description                          |
-|--------|------------------------------------------|---------------------------------------|
-| POST   | `/api/device/data`                      | Device check-in (battery, GPS, status) |
-| GET    | `/api/device/status/{device_id}`        | Device online/offline status          |
-| GET    | `/api/location/{device_id}`             | Latest known location                 |
-| GET    | `/api/location/{device_id}/history`     | Location history                      |
-| POST   | `/api/events`                           | Submit an event (any module)          |
-| GET    | `/api/events/{device_id}`               | Incident history (filterable)         |
-| POST   | `/api/sos`                              | Trigger an SOS                        |
-| GET    | `/health`                               | Health check                          |
+# 🔗 Module Integration Contract
 
-### Event filtering
-
-`GET /api/events/{device_id}` supports optional query params:
-`event_type`, `risk_level`, `date` (ISO `YYYY-MM-DD`), `limit`.
-
-## Database Schema
-
-- **Device** — `device_id` (unique), `battery`, `status`, cached last
-  latitude/longitude, `gps_available`, `last_seen`, `created_at`
-- **Location** — `device_id` (FK), `latitude`, `longitude`, `timestamp`
-  (one row per check-in — full history)
-- **Event** — `device_id` (FK), `source`, `event_type`, `risk_level`,
-  `message`, `extra` (JSON, module-specific fields), `timestamp`
-- **SOSEvent** — `device_id` (FK), `reason`, `latitude`, `longitude`,
-  `notified`, `timestamp`
-
-All development uses SQLite (`smart_blind_stick.db`, git-ignored). To
-move to PostgreSQL later, only `DATABASE_URL` in `.env` needs to change,
-e.g.:
-
-```text
-DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/smart_blind_stick
-```
-
-## Testing
-
-```bash
-pytest
-```
-
-Tests use a separate SQLite test database and FastAPI's `TestClient`, so
-no hardware or running server is required. Covers device check-in/status,
-GPS storage/history, event creation/filtering/retrieval, SOS, and
-validation errors (invalid data, unknown device).
-
-## Real GPS Hardware
-
-For an actual physical GPS module (NEO-6M or any NMEA-0183-compatible
-chip) on a Raspberry Pi or microcontroller, use
-`scripts/gps_device_client.py` instead of the mock simulator. It's a
-drop-in hardware counterpart — it posts to the exact same
-`/api/device/data` endpoint, so no backend changes are needed to go from
-mock to real hardware.
-
-**Wiring** (Raspberry Pi + NEO-6M example — see the full docstring in
-`scripts/gps_reader.py` for exact pin numbers and `raspi-config` steps
-to free up the UART):
-
-```text
-GPS module      Raspberry Pi
-VCC        ->   5V (check your module's voltage — some need 3.3V)
-GND        ->   GND
-TX         ->   GPIO15 / RXD
-RX         ->   GPIO14 / TXD
-```
-
-**Run it:**
-
-```bash
-python scripts/gps_device_client.py --device-id STICK_001
-# custom serial port / baud rate / backend location:
-python scripts/gps_device_client.py --port /dev/ttyUSB0 --baud 9600 --base-url http://192.168.1.50:8000
-```
-
-It reads real NMEA sentences off the serial port (`scripts/gps_reader.py`
-parses GGA for position/altitude/satellites/fix-quality, and RMC for
-ground speed), and only sends a check-in once it has an actual fix — if
-the module is still acquiring satellites (common for the first
-30–60 seconds, especially indoors), it logs "No GPS fix yet" and waits
-rather than sending stale or zeroed coordinates.
-
-The extra fields (`altitude`, `speed_kmh`, `satellites`, `fix_quality`)
-are optional on `/api/device/data` and are stored on every `Location`
-row and cached on the `Device` row — the mock simulator simply omits
-them, so both paths work against the same backend and same tests.
-
-**Testing without hardware attached:** `tests/test_gps_reader.py`
-verifies the NMEA parsing itself (valid fix, no-fix, corrupted
-checksums, speed attachment) using a fake in-memory serial stream — no
-physical module required to run `pytest`.
-
-## Mock Device Simulator
-
-Since no physical hardware exists yet, `scripts/simulate_device.py`
-mimics a smart stick sending periodic check-ins and occasional events.
-
-Start the backend first, then in another terminal:
-
-```bash
-python scripts/simulate_device.py
-```
-
-Options:
-
-```bash
-python scripts/simulate_device.py --device-id STICK_002 --interval 3
-python scripts/simulate_device.py --once            # single check-in, then exit
-python scripts/simulate_device.py --base-url http://127.0.0.1:8000
-```
-
-GPS points are generated by a mock GPS function
-(`app/services/location_service.py::generate_mock_gps_point`) — this is
-explicitly **not** real GPS hardware, and is isolated in one function so
-it's a one-line swap once real hardware is available.
-
-## Integration Contract for Teammates
-
-All three other modules send data through **the same two endpoints**:
-`POST /api/device/data` (for stick position, if the module has GPS-aware
-context) and, primarily, `POST /api/events`. Your module does not need
-this backend to be running its other modules to be developed against.
-
-The generic event shape:
+The modules communicate through the backend event system.
 
 ```json
 {
   "device_id": "STICK_001",
   "source": "sensor_fusion | ai_vision | safety_engine",
-  "event_type": "obstacle | object_detected | danger | ...",
+  "event_type": "obstacle | object_detected | danger",
   "risk_level": "low | medium | high | critical",
-  "message": "human-readable summary",
-  "extra": { "...module-specific fields go here..." }
-}
-```
-
-### `feature/sensor-fusion`
-
-```json
-{
-  "device_id": "STICK_001",
-  "source": "sensor_fusion",
-  "event_type": "obstacle",
-  "risk_level": "medium",
-  "message": "Obstacle detected on left",
+  "message": "Human-readable summary",
   "extra": {
-    "distance": 1.4,
-    "direction": "left",
-    "level": "head",
-    "confidence": 0.91
+    "module_specific": "data"
   }
 }
 ```
 
-### `feature/ai-vision`
+### AI Vision Output
 
 ```json
 {
   "device_id": "STICK_001",
   "source": "ai_vision",
   "event_type": "object_detected",
-  "risk_level": "high",
   "message": "Vehicle approaching from right",
   "extra": {
-    "object": "vehicle",
+    "object": "car",
     "distance": 2.1,
     "direction": "right",
     "movement": "approaching",
@@ -295,38 +706,225 @@ The generic event shape:
 }
 ```
 
-### `feature/safety-emergency`
+The AI module may generate a `risk_hint`, but the **Safety Engine is responsible for the final `risk_level`**.
 
-```json
-{
-  "device_id": "STICK_001",
-  "source": "safety_engine",
-  "event_type": "danger",
-  "risk_level": "critical",
-  "message": "Vehicle approaching from right"
-}
+---
+
+# ⚙️ Installation
+
+## Clone
+
+```bash
+git clone https://github.com/gee-46/smart-blind-stick.git
+cd smart-blind-stick
 ```
 
-Anything module-specific (distance, direction, confidence, object,
-level, ...) goes in `extra` — it's stored as JSON, so new fields never
-require a database migration.
+## Create Virtual Environment
 
-Safety-emergency can also call `POST /api/sos` directly if it decides an
-SOS should be triggered automatically (e.g. after a fall-detection
-event), using the same shape a manual SOS button press would use.
+### Windows
 
-## Next Recommended Development Step
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+```
 
-1. Other team members start against `POST /api/events` using the
-   contract above — they can develop and test their modules against this
-   backend today, using `scripts/simulate_device.py` as a reference for
-   how to call the API.
-2. Add a lightweight auth/API-key check on device-facing endpoints before
-   any real deployment.
-3. Replace `MockNotificationService` with a real SMS/Firebase/WhatsApp
-   integration once the safety-emergency module defines exact alerting
-   requirements.
-4. Add a WebSocket or polling endpoint if the future mobile app needs
-   live updates instead of request/response polling.
-5. When ready, swap `DATABASE_URL` to PostgreSQL for a shared team
-   development database.
+### Linux / macOS
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Environment Configuration
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Linux/macOS:
+
+```bash
+cp .env.example .env
+```
+
+---
+
+# ▶️ Running the Backend
+
+```bash
+python run.py
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+Swagger:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# 🧪 Testing
+
+Run:
+
+```bash
+pytest
+```
+
+Current results:
+
+```text
+Backend:    35/35 passing
+AI Vision:  94/94 passing
+```
+
+The AI Vision test suite uses mocks and fixtures and does not require physical hardware.
+
+---
+
+# 🤖 AI Vision Performance
+
+Current development baseline:
+
+```text
+Model:              YOLOv8n
+Device:             CPU
+FPS:                ~10
+Average inference:  ~99 ms/frame
+```
+
+Performance depends on the system hardware, input resolution, model configuration, and environment.
+
+---
+
+# ⚠️ Current Limitations
+
+* Monocular distance estimation is approximate.
+* Detection depends on the trained YOLO classes.
+* Low-light conditions may reduce detection accuracy.
+* Occlusion can affect tracking.
+* CPU inference has lower FPS than GPU inference.
+* Real-world camera calibration is still required.
+* Approaching-object detection depends on reliable temporal tracking.
+* Continuous AI-to-backend event throttling is pending.
+* Physical hardware validation is pending.
+* `risk_hint` is advisory and is not the final safety classification.
+
+---
+
+# 🔮 Future Improvements
+
+* Depth cameras
+* Stereo vision
+* LiDAR integration
+* Improved monocular depth estimation
+* Custom obstacle detection datasets
+* Edge AI optimization
+* TensorRT / OpenVINO optimization
+* Advanced object tracking
+* Improved low-light detection
+* Voice-based navigation
+* Offline navigation
+* Guardian monitoring
+* Cloud analytics
+* Predictive safety models
+
+---
+
+# 💰 Target Cost
+
+The project aims to maintain an affordable prototype cost of approximately:
+
+**< ₹3000**
+
+Actual cost will depend on the final hardware configuration, including:
+
+* Microcontroller
+* Camera
+* GPS
+* Sensors
+* Battery
+* Communication module
+* Enclosure
+
+---
+
+# 🌍 Social Impact
+
+The Smart Blind Stick aims to improve:
+
+* Mobility
+* Independence
+* Environmental awareness
+* Personal safety
+* Emergency response
+* Accessibility
+
+The goal is to **augment the traditional white cane with intelligent technology**, not replace it.
+
+---
+
+# 📜 Development Status
+
+**Status: Active Development**
+
+### Current Milestone
+
+> **Core Backend + AI Vision completed.**
+
+### Next Milestone
+
+> **Sensor Fusion + Safety Engine integration.**
+
+---
+
+## 👥 Team Development
+
+The project follows a feature-branch development workflow.
+
+Each module is developed independently and integrated through `develop`.
+
+```text
+feature/mobile-iot
+        │
+        ├─────────────┐
+        │             │
+feature/ai-vision   feature/sensor-fusion
+        │             │
+        └──────┬──────┘
+               │
+               ▼
+       Safety & Integration
+               │
+               ▼
+            develop
+               │
+               ▼
+             main
+```
+
+---
+
+# ⭐ Built With
+
+Python • FastAPI • OpenCV • YOLO • PyTorch • SQLAlchemy • Pydantic • NumPy • pytest
+
+---
+
+## 🦯 Smart Blind Stick
+
+**Smarter sensing. Intelligent vision. Safer mobility.**
