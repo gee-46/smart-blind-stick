@@ -4,14 +4,25 @@ FastAPI application entry point.
 Wires together the database and all API routers. Run via `run.py` or
 `uvicorn app.main:app --reload`.
 """
+
 import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database.database import init_db
-from app.api import auth, device, location, events, sos, guardian_devices, contacts, websocket
+from app.api import (
+    auth,
+    device,
+    location,
+    events,
+    sos,
+    guardian_devices,
+    contacts,
+    websocket,
+)
 from app.services.offline_watcher import run_offline_watcher
 import app.websocket_manager as websocket_manager
 
@@ -21,10 +32,13 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    # Capture the running event loop so sync service code (device_service,
-    # event_service) can push WebSocket broadcasts via run_coroutine_threadsafe.
+
+    # Capture the running event loop so sync service code
+    # can push WebSocket broadcasts safely.
     websocket_manager.main_event_loop = asyncio.get_running_loop()
+
     watcher_task = asyncio.create_task(run_offline_watcher())
+
     try:
         yield
     finally:
@@ -44,6 +58,24 @@ app = FastAPI(
 )
 
 
+# ============================================================
+# CORS
+# Allows the Expo web frontend running on localhost:8081
+# to communicate with the FastAPI backend on port 8000.
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.get("/", tags=["root"])
 def root():
     return {
@@ -57,6 +89,10 @@ def root():
 def health():
     return {"status": "ok"}
 
+
+# ============================================================
+# API ROUTERS
+# ============================================================
 
 app.include_router(auth.router)
 app.include_router(device.router)
