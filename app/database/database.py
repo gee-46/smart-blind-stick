@@ -28,7 +28,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db() -> None:
     """Create all tables. Safe to call multiple times."""
     # Import models so they are registered on Base.metadata before create_all.
-    from app.models import device, location, event  # noqa: F401
+    from app.models import device, location, event, guardian  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 

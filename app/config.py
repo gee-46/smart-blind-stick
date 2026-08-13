@@ -28,13 +28,12 @@ class Settings(BaseSettings):
     default_event_limit: int = 50
     default_location_history_limit: int = 50
 
-    # Milestone 2: WebSocket / real-time settings
-    # How long a device WS connection has to send its auth message before
-    # being disconnected.
-    websocket_auth_timeout_seconds: float = 15.0
-    # How often the background task scans devices for online<->offline
-    # transitions and broadcasts them to monitors.
-    heartbeat_check_interval_seconds: float = 10.0
+    # Guardian mobile app: authentication
+    # IMPORTANT: override JWT_SECRET_KEY in production (.env) -- this
+    # default is only safe for local development.
+    jwt_secret_key: str = "dev-only-insecure-secret-change-me"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 30
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

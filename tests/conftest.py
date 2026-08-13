@@ -6,6 +6,7 @@ so tests never touch the real development database, and overrides the
 `get_db` FastAPI dependency to use it.
 """
 import os
+import uuid
 
 import pytest
 from fastapi.testclient import TestClient
@@ -40,7 +41,7 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
     """Create tables once for the whole test session, drop them after."""
-    from app.models import device, location, event  # noqa: F401
+    from app.models import device, location, event, guardian  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     yield
@@ -52,7 +53,12 @@ def setup_database():
 
 @pytest.fixture()
 def client():
-    return TestClient(app)
+    # Entering as a context manager runs the app's lifespan (startup/shutdown),
+    # which is required so websocket_manager.main_event_loop gets captured
+    # and the offline-watcher background task starts -- matching real
+    # runtime behavior instead of only exercising routes in isolation.
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture()
@@ -68,3 +74,34 @@ def registered_device(client):
     response = client.post("/api/device/data", json=payload)
     assert response.status_code == 200
     return payload["device_id"]
+
+
+@pytest.fixture()
+def guardian_tokens(client):
+    """Registers a real guardian account via the API and returns its token pair."""
+    payload = {
+        "email": f"guardian-{uuid.uuid4().hex[:8]}@example.com",
+        "password": "SuperSecret123",
+        "full_name": "Asha Rao",
+        "phone": "+919900000000",
+    }
+    response = client.post("/api/auth/register", json=payload)
+    assert response.status_code == 201
+    return response.json()
+
+
+@pytest.fixture()
+def auth_headers(guardian_tokens):
+    return {"Authorization": f"Bearer {guardian_tokens['access_token']}"}
+
+
+@pytest.fixture()
+def paired_device(client, auth_headers, registered_device):
+    """A device that has both checked in AND been paired to the test guardian."""
+    response = client.post(
+        "/api/guardian/devices",
+        json={"device_id": registered_device, "nickname": "Test Stick"},
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    return registered_device
