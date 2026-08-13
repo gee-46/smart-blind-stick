@@ -1,0 +1,13 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    // Lets `tsc` resolve platform-specific files (e.g. LocationMap.native.tsx /
+    // LocationMap.web.tsx) the same way Metro does at bundle time, so an
+    // extensionless import like `from "../../components/LocationMap"`
+    // type-checks instead of failing to resolve. Order = preference when
+    // type-checking; Metro itself still picks the correct one per platform
+    // at bundle time regardless of this order.
+    "moduleSuffixes": [".native", ".ios", ".android", ".web", ""]
+  }
+}

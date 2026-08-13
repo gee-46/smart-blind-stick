@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.models.event import Event, SOSEvent
 from app.schemas.event import EventIn, SOSIn
 from app.services.notification_service import get_notification_service
+from app.websocket_manager import manager as ws_manager
 
 settings = get_settings()
 
@@ -29,6 +30,30 @@ def create_event(db: Session, data: EventIn) -> Event:
     db.add(event)
     db.commit()
     db.refresh(event)
+
+    ws_manager.broadcast_sync(
+        data.device_id,
+        {
+            "type": data.event_type,
+            "source": data.source,
+            "device_id": data.device_id,
+            "risk_level": data.risk_level,
+            "message": data.message,
+            "extra": data.extra,
+            "timestamp": event.timestamp,
+        },
+    )
+    if data.risk_level:
+        ws_manager.broadcast_sync(
+            data.device_id,
+            {
+                "type": "safety_update",
+                "device_id": data.device_id,
+                "risk_level": data.risk_level,
+                "message": data.message,
+                "timestamp": event.timestamp,
+            },
+        )
     return event
 
 
@@ -81,4 +106,17 @@ def create_sos(db: Session, data: SOSIn) -> SOSEvent:
     )
     db.commit()
     db.refresh(sos)
+
+    ws_manager.broadcast_sync(
+        data.device_id,
+        {
+            "type": "sos",
+            "device_id": data.device_id,
+            "reason": data.reason,
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "event_id": sos.id,
+            "timestamp": sos.timestamp,
+        },
+    )
     return sos
