@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Convenience runner: `python run.py`
 
@@ -15,3 +16,17 @@ if __name__ == "__main__":
     reload = os.getenv("RELOAD", "true").lower() == "true"
 
     uvicorn.run("app.main:app", host=host, port=port, reload=reload)
+=======
+"""Server startup script."""
+import uvicorn
+from app.config import get_settings
+
+if __name__ == "__main__":
+    settings = get_settings()
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.RELOAD,
+    )
+>>>>>>> origin/feature/safety-emergency

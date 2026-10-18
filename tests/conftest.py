@@ -1,63 +1,65 @@
-"""
-Shared pytest fixtures.
 
-Uses a separate on-disk SQLite test database (test_smart_blind_stick.db)
-so tests never touch the real development database, and overrides the
-`get_db` FastAPI dependency to use it.
-"""
-import os
+"""Shared pytest fixtures for API and Safety & Emergency tests."""
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-TEST_DB_PATH = "test_smart_blind_stick.db"
-TEST_DATABASE_URL = f"sqlite:///./{TEST_DB_PATH}"
-
-# Ensure the app picks up the test DB URL before any app module is imported.
-os.environ["DATABASE_URL"] = TEST_DATABASE_URL
-
-from app.database.base import Base  # noqa: E402
-from app.database.database import get_db  # noqa: E402
-from app.main import app  # noqa: E402
-
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+import app.models
+from app.database.base import Base
+from app.database.database import get_db
+from app.main import app
+from app.services.notification_service import MockNotificationService
 
 
-def override_get_db():
+engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+
+TestingSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
+
+
+@pytest.fixture(scope="function")
+def db_session():
+    """Create a fresh database schema for each test."""
+    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
+    MockNotificationService.clear_history()
+
     try:
         yield db
     finally:
         db.close()
+        Base.metadata.drop_all(bind=engine)
 
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(scope="function")
+def client(db_session):
+    """Provide a test client using the isolated test database."""
 
+    def override_get_db():
+        yield db_session
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_database():
-    """Create tables once for the whole test session, drop them after."""
-    from app.models import device, location, event  # noqa: F401
+    app.dependency_overrides[get_db] = override_get_db
 
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-    engine.dispose()
-    if os.path.exists(TEST_DB_PATH):
-        os.remove(TEST_DB_PATH)
-
-
-@pytest.fixture()
-def client():
-    return TestClient(app)
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.pop(get_db, None)
 
 
 @pytest.fixture()
 def registered_device(client):
-    """Creates a device via the real API so tests can build on it."""
+    """Register a device for tests that need an existing device."""
     payload = {
         "device_id": "TEST_STICK_001",
         "battery": 90,
@@ -65,6 +67,8 @@ def registered_device(client):
         "longitude": 74.4977,
         "status": "safe",
     }
+
     response = client.post("/api/device/data", json=payload)
-    assert response.status_code == 200
+    assert response.status_code == 200, response.text
+
     return payload["device_id"]
