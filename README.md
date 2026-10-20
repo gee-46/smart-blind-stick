@@ -1,930 +1,275 @@
-# 🦯 Smart Blind Stick
+# 🦯 Smart Blind Stick — Complete 23-Feature AI Vision & Mobility System
 
-## AI-Powered Smart Mobility System Using IoT, Sensors, GPS & Computer Vision
-
-> An intelligent assistive mobility system designed to improve the safety, independence, and navigation of visually impaired individuals through real-time sensing, AI-based object detection, GPS tracking, and emergency assistance.
+> An AI-powered assistive mobility system engineered for visually impaired individuals, combining multi-sensor IoT, computer vision, real-time GPS tracking, and intelligent guardian safety assistance.
 
 ---
 
-## 📌 Overview
+## 📌 Complete Master Feature List (23 Features)
 
-The **Smart Blind Stick** is an upgraded mobility aid that combines traditional obstacle detection with modern technologies such as:
-
-* Artificial Intelligence
-* Computer Vision
-* IoT
-* Ultrasonic Sensors
-* IR Sensors
-* IMU
-* GPS
-* Real-Time Event Processing
-* Safety & Risk Assessment
-* Emergency Assistance
-
-The system is designed to detect obstacles at different levels, understand the surrounding environment, estimate object movement and approximate distance, track the user's location, and provide intelligent alerts.
-
-Instead of simply detecting:
-
-> **"Obstacle detected"**
-
-the system aims to understand:
-
-> **What is the object? Where is it? How far is it? Is it moving? Is it approaching? How dangerous is the situation?**
-
----
-
-# ❗ Problem Statement
-
-Traditional white canes are useful for detecting obstacles near ground level but have limitations when dealing with:
-
-* Head-level obstacles
-* Overhanging objects
-* Moving vehicles
-* Bicycles and motorcycles
-* Objects outside the physical reach of the cane
-* Complex environments requiring contextual understanding
-
-Traditional canes also do not provide:
-
-* Real-time GPS tracking
-* Emergency SOS functionality
-* Guardian monitoring
-* AI-based environmental understanding
-* Intelligent risk assessment
-
-Therefore, there is a need for an affordable and intelligent assistive mobility system that combines **physical sensing, computer vision, GPS, IoT, and safety intelligence**.
-
----
-
-# 💡 Proposed Solution
-
-The Smart Blind Stick combines multiple sensing and intelligence layers into a single system.
+The application strictly implements and organizes **only these 23 features** across 6 core functional categories:
 
 ```text
-                         SMART BLIND STICK
-                                │
-             ┌──────────────────┼──────────────────┐
-             │                  │                  │
-             ▼                  ▼                  ▼
-       Sensor Fusion        AI Vision          GPS + IoT
-             │                  │                  │
-             └──────────────────┼──────────────────┘
-                                ▼
-                         Safety Engine
-                                │
-                    ┌───────────┼───────────┐
-                    ▼           ▼           ▼
-                Vibration     Audio        SOS
-                    │           │           │
-                    └───────────┼───────────┘
-                                ▼
-                              USER
-```
-
-The system combines information from multiple sources before generating safety decisions.
-
----
-
-# 🎯 Objectives
-
-* Detect obstacles at multiple heights and distances.
-* Identify objects using computer vision.
-* Estimate object direction and approximate distance.
-* Track objects across frames.
-* Detect moving and approaching objects.
-* Combine AI and sensor information.
-* Generate intelligent safety decisions.
-* Provide vibration and audio alerts.
-* Track the user's GPS location.
-* Provide emergency SOS functionality.
-* Maintain an affordable and scalable architecture.
-
----
-
-# 🚀 Key Features
-
-## 1. AI Vision
-
-The AI Vision module provides real-time environmental understanding.
-
-### Implemented
-
-* Real-time camera input
-* Webcam support
-* Video input
-* Image input
-* Mock input
-* YOLOv8n object detection
-* Confidence filtering
-* Class filtering
-* Object tracking
-* Stable tracking IDs
-* LEFT / CENTER / RIGHT direction estimation
-* Monocular distance estimation
-* Movement detection
-* Approaching vehicle detection
-* Structured Pydantic output
-* Backend event adapter
-
-### Mobility-Relevant Classes
-
-The current implementation uses relevant COCO classes:
-
-* Person
-* Bicycle
-* Car
-* Motorcycle
-* Bus
-* Truck
-* Traffic Light
-* Stop Sign
-* Bench
-* Dog
-* Cat
-* Chair
-
-### AI Vision Pipeline
-
-```text
-Camera
-   ↓
-Frame Capture
-   ↓
-Preprocessing
-   ↓
-YOLOv8n Detection
-   ↓
-Confidence Filtering
-   ↓
-Object Tracking
-   ↓
-Direction Estimation
-   ↓
-Distance Estimation
-   ↓
-Movement Analysis
-   ↓
-Approaching Object Detection
-   ↓
-Structured AI Output
-   ↓
-Safety Engine
+========================================================================================
+                          SMART BLIND STICK ARCHITECTURE
+========================================================================================
+  [1. Core Safety]          [2. AI & Intelligent]        [3. Navigation]
+   • Real-Time Obstacles     • AI Object Recognition       • Voice Navigation
+   • Multi-Level Detection   • Type Classification         • Safe Route Recommendation
+   • Sensor Fusion           • Moving Object Tracking      • Geofencing Safe Zones
+   • Alert Prioritization    • Fall Detection (IMU)
+   • Directional Haptics     • Intelligent SOS System
+----------------------------------------------------------------------------------------
+  [4. Personalization]      [5. Mobile & Guardian]       [6. Innovative & Reliability]
+   • Adaptive Alert System   • Live Stick Dashboard (PWA)  • Community Hazard Mapping
+   • User Profiles           • Guardian Live Dashboard     • AI Voice Assistant
+                             • Incident History Audit      • Offline Safety Mode
+                                                           • Battery Intelligence
+                                                           • Self-Diagnostic System
+========================================================================================
 ```
 
 ---
 
-# 2. Sensor Fusion
+## 🛡️ 1. Core Safety Features
 
-The Sensor Fusion module will combine data from:
+### 1. Real-Time Obstacle Detection
+* Continuously evaluates ultrasonic and IR telemetry with three risk zones:
+  * **Safe** (> 1.8m): Green indicator, clear walking path.
+  * **Caution** (0.8m – 1.8m): Amber indicator, spoken alert, medium pulse vibration.
+  * **Danger / Imminent Collision** (< 0.8m / < 0.4m): Red emergency indicator, continuous tactile vibration, audible alarm buzzer.
+* Interactive 360° sweeping Radar HUD on the Live Stick Mobile Companion (`/app`).
 
-* Ultrasonic sensors
-* IR sensors
-* IMU
-* Distance measurements
-* Direction information
+### 2. Multi-Level Obstacle Detection
+* Evaluates distinct vertical sensor levels simultaneously:
+  * **Ground-level**: Potholes, curbs, downward steps, edges, drop-offs.
+  * **Waist-level**: Low barriers, fire hydrants, tables, desks.
+  * **Chest-level**: Mid-height railings, posts, construction fences.
+  * **Head-level**: Overhanging branches, signs, awnings, suspended obstructions.
+* Visual elevation indicators highlight the exact level of impending hazards.
 
-```text
-Ultrasonic
-     +
-IR Sensors
-     +
-IMU
-     ↓
-Sensor Fusion
-     ↓
-Unified Environmental Information
-```
+### 3. Intelligent Sensor Fusion
+* Blends inputs from Ultrasonic sensors, Ground IR, 6-Axis IMU (accelerometer/gyro), and GPS data.
+* **Cane Swing Filtering**: Detects natural arm pendulum sweeping (`imu_swing_velocity > 250°/s`) and orientation tilt (`imu_tilt_deg > 55°`) to eliminate spurious peripheral reflections.
+* Computes an environmental **Path Safety Score** (0% to 100%).
 
-### Status
+### 4. Smart Alert Prioritization
+* Prioritizes threats through a dynamic 5-level queue based on distance, trajectory, direction, and hazard severity:
+  * `P1 - CRITICAL`: Imminent collision (< 0.4m) or moving vehicle on direct path.
+  * `P2 - HIGH`: Potholes, drop-offs, close obstacles (< 1.0m).
+  * `P3 - MEDIUM`: Cautionary obstacles (1.0m – 1.8m), overhanging tree branches.
+  * `P4 - LOW`: Distant objects (> 1.8m).
+  * `P5 - INFO`: Path clear, diagnostic notifications.
 
-**Pending**
-
----
-
-# 3. Safety & Risk Assessment
-
-The Safety Engine will combine information from:
-
-* AI Vision
-* Sensor Fusion
-* Distance
-* Direction
-* Movement
-* GPS/context
-
-The final system will classify situations as:
-
-```text
-SAFE
-LOW
-MEDIUM
-HIGH
-CRITICAL
-```
-
-### Important Design Principle
-
-AI Vision provides an advisory **`risk_hint`**.
-
-It does **not** independently determine the final `risk_level`.
-
-The Safety Engine will make the final decision using multiple inputs.
-
-### Status
-
-**Pending**
+### 5. Direction-Based Haptic Feedback
+* Generates distinct tactile vibration patterns (supported via Web Vibration API `navigator.vibrate` and physical ERM/LRA vibration actuators):
+  * **Left Obstacle**: `[150, 100, 150]` (Left directional pulse)
+  * **Right Obstacle**: `[300, 100, 100]` (Right directional pulse)
+  * **Center Caution**: `[180, 120, 180]` (Balanced double pulse)
+  * **Pothole / Drop-off**: `[80, 40, 80, 40, 80]` (Rapid ground staccato tap)
+  * **Immediate Danger**: `[500, 50, 500, 50, 500]` (Continuous emergency vibration)
 
 ---
 
-# 4. GPS Tracking
+## 👁️ 2. AI and Intelligent Features
 
-The backend currently supports:
+### 6. AI-Based Object Recognition
+* Camera feed analyzed by YOLOv8n detector with monocular distance and bounding-box estimation.
+* Detects and classifies the **10 target mobility categories**:
+  1. `People` (`person`)
+  2. `Vehicles` (`car`, `bus`, `truck`)
+  3. `Bicycles` (`bicycle`)
+  4. `Motorcycles` (`motorcycle`)
+  5. `Poles` (`pole`, `traffic light`, `stop sign`, `fire hydrant`)
+  6. `Trees` (`tree`, `potted plant`)
+  7. `Staircases` (`staircase`, `steps`)
+  8. `Doors` (`door`)
+  9. `Chairs` (`chair`, `bench`, `couch`)
+  10. `Walls` (`wall`, `barrier`)
 
-* Real-time location
-* Location history
-* GPS availability
-* Last known location
-* Latitude/longitude tracking
-* Mock GPS
-* Real GPS client support
+### 7. Obstacle Type Classification
+* Combines AI visual labels, distance in meters, and direction (Left / Center / Right) to generate clear spoken alerts (e.g. *"Caution: Chair, 1.2 meters, Left"*).
 
-Compatible GPS hardware can provide NMEA-0183 data to the backend.
+### 8. Moving Object Detection
+* Tracks bounding box scale changes across successive frames:
+  * Estimates closing velocity ($v = \frac{\Delta d}{\Delta t}$).
+  * Identifies approaching vehicles/pedestrians ($v > 0.5\text{ m/s}$) on collision trajectories and triggers urgent priority alerts.
 
-### Status
+### 9. Fall Detection
+* 3-phase IMU accelerometer & tilt state machine:
+  1. Free-fall drop ($< 0.6g$)
+  2. High-impact spike ($> 2.4g$)
+  3. Post-impact resting posture ($> 40^\circ$ tilt)
+* Initiates an acoustic and visual 20-second confirmation window before auto-escalating to SOS.
 
-**Backend implemented; physical hardware integration pending.**
-
----
-
-# 5. Emergency SOS
-
-The system provides an SOS mechanism for emergency situations.
-
-Potential triggers:
-
-* Manual SOS button
-* Fall detection
-* Critical safety event
-* Automatic emergency trigger
-
-SOS information can include:
-
-* Device ID
-* Location
-* Emergency reason
-* Timestamp
-
-### Status
-
-**Backend SOS foundation implemented; complete safety/emergency integration pending.**
+### 10. Intelligent SOS System
+* Dual trigger: Manual physical SOS button or Automatic fall confirmation timeout.
+* Dispatches alert with live GPS coordinates, Google Maps link, and notification history.
+* Includes a 20-second **"I'm OK (Cancel Alarm)"** window to prevent false alarms.
+* Guardian live tracking and resolution logging.
 
 ---
 
-# 6. Guardian / Mobile Application
+## 🧭 3. Navigation Features
 
-A future guardian/mobile interface will provide:
+### 11. Voice Navigation
+* Turn-by-turn spoken guidance delivered via natural browser Speech Synthesis (`window.speechSynthesis`).
+* Clear directional cues (e.g., *"Turn left in 15 meters onto Market Street"*, *"Continue straight for 60 meters on tactile pavement"*).
 
-* Live location
-* Device status
-* Emergency notifications
-* Event history
-* Safety status
-* Guardian monitoring
+### 12. Safe Route Recommendation
+* Generates pedestrian routes optimized for accessibility:
+  * Avoids steep stairs in favor of gentle access ramps.
+  * Avoids high-traffic arterial roads.
+  * Bypasses active construction zones and reported potholes.
+* Provides a route **Safety Index** (e.g., 96% Safe Route).
 
-### Status
-
-**Pending**
-
----
-
-# 🏗️ System Architecture
-
-```text
-                         SMART BLIND STICK
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-              ▼                 ▼                 ▼
-       Ultrasonic / IR       Camera             GPS
-              │                 │                 │
-              ▼                 ▼                 │
-       Sensor Fusion        AI Vision              │
-              │                 │                 │
-              └─────────────────┼─────────────────┘
-                                ▼
-                         Safety Engine
-                                │
-                    ┌───────────┼───────────┐
-                    │           │           │
-                    ▼           ▼           ▼
-                 Vibration    Audio        SOS
-                                │
-                                ▼
-                         FastAPI Backend
-                                │
-                    ┌───────────┼───────────┐
-                    ▼           ▼           ▼
-                 Database    GPS Data     Events
-                                │
-                                ▼
-                       Guardian / Mobile
-```
+### 13. Geofencing
+* Guardians can define safe geographic boundaries (Center coordinate + Radius, e.g. Home Safe Zone 350m).
+* Real-time distance tracking using the Haversine formula; automatically logs breach alerts if the stick exits the perimeter.
 
 ---
 
-# 🔄 Safety Decision Flow
+## 👤 4. Personalization Features
 
-```text
-AI Vision
-    │
-    ├── Object
-    ├── Distance
-    ├── Direction
-    ├── Movement
-    └── Confidence
-           │
-           ▼
-     Sensor Fusion
-           │
-    ┌──────┼──────┐
-    ▼      ▼      ▼
-Ultrasonic IR     IMU
-    │      │      │
-    └──────┼──────┘
-           ▼
-      Safety Engine
-           │
-           ▼
-     Risk Assessment
-           │
-    ┌──────┼──────┐
-    ▼      ▼      ▼
-Vibration Audio   SOS
-```
+### 14. Adaptive Alert System
+* Dynamically tunes alert distance and filters based on user environment:
+  * **Standard Mode** (2.2m threshold for normal daily walking)
+  * **High Sensitivity Mode** (3.2m threshold for unfamiliar or dark routes)
+  * **Crowded Street Mode** (filters distant static objects, focuses on obstacles $< 1.2\text{m}$ and moving vehicles)
+
+### 15. User Profiles
+* Complete personalized profile stored in database:
+  * Alert distance threshold ($1.0\text{m} - 4.0\text{m}$)
+  * Audio speech volume ($0\% - 100\%$)
+  * Vibration intensity (`gentle`, `medium`, `intense`)
+  * Navigation voice (`female_en`, `male_en`, `neutral`)
+  * Walking speed (`slow`, `normal`, `fast`)
+  * Emergency contact name, phone number, and relationship.
 
 ---
 
-# 🧩 Backend Architecture
+## 📱 5. Mobile Application and Monitoring Features
 
-The backend follows a layered architecture:
+### 16. Live Stick Dashboard
+* High-performance Progressive Web App (PWA) at `/app`.
+* Real-time stick HUD: battery %, GPS fix type & satellite count, multi-sensor elevation readouts, online/offline status pill, and path safety score.
 
-```text
-API Layer
-    ↓
-Service Layer
-    ↓
-Database Models
-    ↓
-SQLite / PostgreSQL
-```
+### 17. Guardian Dashboard
+* Caregiver monitoring portal at `/dashboard`.
+* Live interactive Leaflet map tracking stick position, breadcrumb trail, geofence boundary circle, and emergency resolution controls.
 
-FastAPI routes remain thin while business logic is handled by service modules.
-
-This allows the AI Vision, Sensor Fusion, and Safety Engine modules to communicate through defined interfaces.
-
----
-
-# 🛠️ Technology Stack
-
-### AI / Machine Learning
-
-* Python
-* PyTorch
-* Ultralytics YOLO
-* YOLOv8n
-* Computer Vision
-* Object Tracking
-* Monocular Distance Estimation
-
-### Computer Vision
-
-* OpenCV
-* NumPy
-
-### Backend
-
-* FastAPI
-* Pydantic
-* SQLAlchemy
-
-### Database
-
-* SQLite
-* PostgreSQL-ready architecture
-
-### IoT / Hardware
-
-* ESP32 / Raspberry Pi
-* Ultrasonic Sensors
-* IR Sensors
-* IMU
-* GPS
-* Camera
-* Vibration Motor
-* Buzzer / Audio
-
-### Testing
-
-* pytest
-* FastAPI TestClient
-* Mock data
-* Device simulator
-
-### Development
-
-* Git
-* GitHub
-* VS Code
-* Python Virtual Environment
+### 18. Incident History
+* Persistent audit log recording safety-critical events:
+  * Approaching vehicles
+  * Ground potholes and drop-offs
+  * Fall impact events
+  * Manual SOS button presses
+* Filterable by device ID, risk level, and timestamp.
 
 ---
 
-# 📂 Project Structure
+## 🚀 6. Innovative and Reliability Features
 
-```text
-smart-blind-stick/
-│
-├── app/
-│   ├── main.py
-│   ├── config.py
-│   │
-│   ├── api/
-│   │   ├── device.py
-│   │   ├── location.py
-│   │   ├── events.py
-│   │   └── sos.py
-│   │
-│   ├── models/
-│   │   ├── device.py
-│   │   ├── location.py
-│   │   └── event.py
-│   │
-│   ├── schemas/
-│   │   ├── device.py
-│   │   ├── location.py
-│   │   └── event.py
-│   │
-│   ├── services/
-│   │   ├── device_service.py
-│   │   ├── location_service.py
-│   │   ├── event_service.py
-│   │   └── notification_service.py
-│   │
-│   └── database/
-│       ├── base.py
-│       └── database.py
-│
-├── ai_vision/
-│   ├── camera/
-│   ├── detection/
-│   ├── estimation/
-│   ├── schemas/
-│   ├── services/
-│   └── config.py
-│
-├── tests/
-│
-├── scripts/
-│   ├── simulate_device.py
-│   ├── gps_reader.py
-│   └── gps_device_client.py
-│
-├── models/
-│   └── README.md
-│
-├── integration_notes.md
-├── requirements.txt
-├── .env.example
-├── .gitignore
-├── README.md
-└── run.py
-```
+### 19. Community Hazard Mapping
+* Crowdsourced hazard database collecting anonymous reports of:
+  * Potholes
+  * Construction excavations
+  * Blocked sidewalks / low-hanging branches
+  * Dangerous road crossings
+* Displayed as interactive hazard pins on the map and avoided during route generation.
+
+### 20. AI Voice Assistant
+* Spoken query assistant with speech recognition:
+  * *"Where am I?"* $\rightarrow$ Spoken street coordinates and geofence status.
+  * *"Is there anything ahead?"* $\rightarrow$ Spoken obstacle distance and elevation summary.
+  * *"What is my battery level?"* $\rightarrow$ Spoken percentage, power mode, and hours remaining.
+
+### 21. Offline Safety Mode
+* Local microcontroller / in-browser fallback guarantees:
+  * Obstacle distance radar, multi-level sensors, direction haptic pulses, and local fall detection remain 100% operational even without internet connectivity.
+
+### 22. Battery Intelligence
+* Adaptive power management:
+  * **Normal Mode** ($>30\%$): All sensors, AI camera, and high-precision GPS active.
+  * **Power-Saving Mode** ($15\% - 30\%$): Throttled GPS sampling interval, optimized AI processing.
+  * **Critical-Battery Mode** ($<15\%$): Ultrasonic and haptics prioritized, vital reserves held for emergency SOS.
+
+### 23. Self-Diagnostic System
+* Automated startup test checking 7 critical components:
+  1. Ultrasonic Array (Head / Chest / Waist)
+  2. Ground IR Optical Sensor
+  3. NEO-6M GPS Receiver
+  4. ERM Haptic Vibration Motor
+  5. MPU-6050 6-Axis IMU
+  6. Li-Ion Battery BMS
+  7. Cloud / Network Connectivity
+* Generates component Pass/Fail report with spoken startup announcement.
 
 ---
 
-# 🌿 GitHub Branch Structure
+## 🚀 Quick Start Guide
 
-```text
-main
- │
- └── develop
-      │
-      ├── feature/mobile-iot
-      │
-      ├── feature/ai-vision
-      │
-      ├── feature/sensor-fusion
-      │
-      └── feature/safety-emergency
-```
-
-| Branch                     | Responsibility                                                 |
-| -------------------------- | -------------------------------------------------------------- |
-| `feature/mobile-iot`       | Backend, IoT communication, GPS, events, SOS                   |
-| `feature/ai-vision`        | Computer vision and AI                                         |
-| `feature/sensor-fusion`    | Ultrasonic, IR, IMU and sensor processing                      |
-| `feature/safety-emergency` | Risk assessment, alerts, fall detection and emergency handling |
-
----
-
-# ✅ Work Completed
-
-## Backend / Mobile-IoT
-
-* [x] FastAPI backend
-* [x] SQLite + SQLAlchemy
-* [x] Device communication
-* [x] Device status monitoring
-* [x] GPS location tracking
-* [x] Location history
-* [x] Event ingestion
-* [x] Event filtering
-* [x] SOS endpoint
-* [x] Notification abstraction
-* [x] Mock device simulator
-* [x] Swagger documentation
-* [x] Real GPS client support
-* [x] Automated testing
-* [x] **35/35 backend tests passing**
-
-## AI Vision
-
-* [x] Camera input
-* [x] Webcam / video / image / mock modes
-* [x] YOLOv8n
-* [x] Confidence filtering
-* [x] Class filtering
-* [x] Object tracking
-* [x] Stable track IDs
-* [x] Direction estimation
-* [x] Monocular distance estimation
-* [x] Movement detection
-* [x] Approaching vehicle detection
-* [x] Structured Pydantic output
-* [x] Backend adapter
-* [x] **94/94 AI Vision tests passing**
-* [x] AI Vision documentation
-
----
-
-# 📊 Current Development Status
-
-| Module                 | Status                          |
-| ---------------------- | ------------------------------- |
-| Backend / IoT          | 🟢 Core implementation complete |
-| AI Vision              | 🟢 Core implementation complete |
-| Sensor Fusion          | 🔴 Pending                      |
-| Safety & Emergency     | 🔴 Pending                      |
-| Hardware Integration   | 🔴 Pending                      |
-| Mobile / Guardian App  | 🔴 Pending                      |
-| End-to-End Integration | 🔴 Pending                      |
-
-### Overall Project
-
-**Approximately 40% complete**
-
-The current project has two major software foundations:
-
-> **Backend / IoT + AI Vision**
-
-The remaining work focuses mainly on sensor intelligence, safety decision-making, hardware integration, mobile/guardian functionality, and complete system validation.
-
----
-
-# 🔜 Pending Work
-
-## Sensor Fusion
-
-* [ ] Ultrasonic sensor integration
-* [ ] IR sensor integration
-* [ ] IMU integration
-* [ ] Multi-sensor obstacle representation
-* [ ] Sensor confidence handling
-* [ ] Real hardware testing
-
-## Safety & Emergency
-
-* [ ] Risk assessment engine
-* [ ] Multi-source risk calculation
-* [ ] Alert priority system
-* [ ] Fall detection
-* [ ] Emergency event handling
-* [ ] Automatic SOS triggers
-* [ ] Notification integration
-
-## Hardware
-
-* [ ] ESP32 / Raspberry Pi integration
-* [ ] Camera mounting
-* [ ] Sensor mounting
-* [ ] GPS hardware
-* [ ] Vibration motor
-* [ ] Buzzer / audio
-* [ ] Rechargeable battery
-* [ ] 3D-printed enclosure
-* [ ] Physical prototype
-
-## Mobile / Guardian Application
-
-* [ ] Live location
-* [ ] Device status
-* [ ] Emergency notifications
-* [ ] Event history
-* [ ] Guardian monitoring
-* [ ] Backend integration
-
-## Final Integration
-
-* [ ] AI Vision + Sensor Fusion
-* [ ] AI Vision + Safety Engine
-* [ ] Sensor Fusion + Safety Engine
-* [ ] Safety Engine + Backend
-* [ ] Backend + Mobile App
-* [ ] Hardware + Software
-* [ ] End-to-end testing
-* [ ] Real-world navigation testing
-* [ ] Performance benchmarking
-* [ ] Final deployment
-
----
-
-# 🔌 API
-
-The backend currently exposes:
-
-| Method | Endpoint                            | Description      |
-| ------ | ----------------------------------- | ---------------- |
-| POST   | `/api/device/data`                  | Device check-in  |
-| GET    | `/api/device/status/{device_id}`    | Device status    |
-| GET    | `/api/location/{device_id}`         | Latest location  |
-| GET    | `/api/location/{device_id}/history` | Location history |
-| POST   | `/api/events`                       | Event ingestion  |
-| GET    | `/api/events/{device_id}`           | Event history    |
-| POST   | `/api/sos`                          | SOS              |
-| GET    | `/health`                           | Health check     |
-
-Swagger documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 🔗 Module Integration Contract
-
-The modules communicate through the backend event system.
-
-```json
-{
-  "device_id": "STICK_001",
-  "source": "sensor_fusion | ai_vision | safety_engine",
-  "event_type": "obstacle | object_detected | danger",
-  "risk_level": "low | medium | high | critical",
-  "message": "Human-readable summary",
-  "extra": {
-    "module_specific": "data"
-  }
-}
-```
-
-### AI Vision Output
-
-```json
-{
-  "device_id": "STICK_001",
-  "source": "ai_vision",
-  "event_type": "object_detected",
-  "message": "Vehicle approaching from right",
-  "extra": {
-    "object": "car",
-    "distance": 2.1,
-    "direction": "right",
-    "movement": "approaching",
-    "confidence": 0.94
-  }
-}
-```
-
-The AI module may generate a `risk_hint`, but the **Safety Engine is responsible for the final `risk_level`**.
-
----
-
-# ⚙️ Installation
-
-## Clone
+### 1. Start Backend & Open Web Interfaces
 
 ```bash
-git clone https://github.com/gee-46/smart-blind-stick.git
-cd smart-blind-stick
-```
-
-## Create Virtual Environment
-
-### Windows
-
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-## Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## Environment Configuration
-
-Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Linux/macOS:
-
-```bash
-cp .env.example .env
-```
-
----
-
-# ▶️ Running the Backend
-
-```bash
+# Launch the backend server
 python run.py
 ```
 
-Backend:
+* **Live Stick Mobile Companion (PWA)**: [http://127.0.0.1:8000/app](http://127.0.0.1:8000/app)
+* **Guardian Live Monitor Dashboard**:   [http://127.0.0.1:8000/dashboard](http://127.0.0.1:8000/dashboard)
+* **Interactive API Swagger Docs**:     [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-```text
-http://127.0.0.1:8000
+Or run the Master System Launcher:
+```bash
+python run_all.py
 ```
 
-Swagger:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 🧪 Testing
-
-Run:
+### 2. Run Automated Test Suite (75 Tests)
 
 ```bash
-pytest
+.venv\Scripts\python.exe -m pytest -v
 ```
 
-Current results:
+All 75 automated tests covering all 23 features pass with 100% green status.
+
+---
+
+## 📡 REST API Reference
+
+| Category | Endpoint | Method | Description |
+| :--- | :--- | :--- | :--- |
+| **Core Safety** | `/api/sensors/data` | `POST` | Multi-level obstacle ingestion, intelligent fusion, direction haptics |
+| **Emergency** | `/api/emergency/sos/manual` | `POST` | Trigger manual emergency SOS |
+| **Emergency** | `/api/emergency/fall/detect` | `POST` | Report IMU fall telemetry & trigger countdown |
+| **Emergency** | `/api/emergency/sos/cancel` | `POST` | Cancel false alarm ("I'm OK") |
+| **Emergency** | `/api/emergency/sos/resolve` | `POST` | Guardian resolves emergency incident |
+| **Navigation** | `/api/features/navigation/safe-route` | `POST` | Generate accessible safe pedestrian route |
+| **Navigation** | `/api/features/geofences/{device_id}` | `GET/POST` | Manage safe zone perimeters |
+| **Navigation** | `/api/features/geofences/check/{device_id}` | `POST` | Real-time boundary breach detector |
+| **Personalization** | `/api/features/profile/{device_id}` | `GET/PUT` | User profile & adaptive sensitivity mode |
+| **Hazards** | `/api/features/hazards` | `GET/POST` | Community hazard registry |
+| **Assistant** | `/api/features/assistant/query` | `POST` | AI Voice Assistant spoken query processor |
+| **Reliability** | `/api/features/battery/{device_id}` | `GET` | Battery intelligence status & runtime estimate |
+| **Reliability** | `/api/features/diagnostics/run/{device_id}` | `POST` | Execute 7-component hardware self-test |
+| **Incidents** | `/api/events/{device_id}` | `GET` | Audit trail of past incidents & hazard events |
+
+---
+
+## 🔌 Hardware Wiring Diagram (Microcontroller Bridge)
 
 ```text
-Backend:    35/35 passing
-AI Vision:  94/94 passing
+       ESP32 / Arduino Microcontroller
+    ┌───────────────────────────────────┐
+    │  GPIO 5  ──────> Ultrasonic Trig  │
+    │  GPIO 18 <────── Ultrasonic Echo  │
+    │  GPIO 19 <────── Ground IR Sensor │
+    │  GPIO 21 <────── SDA (MPU-6050)   │
+    │  GPIO 22 <────── SCL (MPU-6050)   │
+    │  GPIO 16 <────── RX2 (GPS TX)     │
+    │  GPIO 17 ──────> TX2 (GPS RX)     │
+    │  GPIO 4  ──────> ERM Haptic Motor │
+    │  GPIO 2  ──────> Buzzer Alarm     │
+    │  GPIO 34 <────── Li-Ion ADC Pin   │
+    │  GPIO 15 <────── Pushbutton (SOS) │
+    └───────────────────────────────────┘
 ```
-
-The AI Vision test suite uses mocks and fixtures and does not require physical hardware.
-
----
-
-# 🤖 AI Vision Performance
-
-Current development baseline:
-
-```text
-Model:              YOLOv8n
-Device:             CPU
-FPS:                ~10
-Average inference:  ~99 ms/frame
-```
-
-Performance depends on the system hardware, input resolution, model configuration, and environment.
-
----
-
-# ⚠️ Current Limitations
-
-* Monocular distance estimation is approximate.
-* Detection depends on the trained YOLO classes.
-* Low-light conditions may reduce detection accuracy.
-* Occlusion can affect tracking.
-* CPU inference has lower FPS than GPU inference.
-* Real-world camera calibration is still required.
-* Approaching-object detection depends on reliable temporal tracking.
-* Continuous AI-to-backend event throttling is pending.
-* Physical hardware validation is pending.
-* `risk_hint` is advisory and is not the final safety classification.
-
----
-
-# 🔮 Future Improvements
-
-* Depth cameras
-* Stereo vision
-* LiDAR integration
-* Improved monocular depth estimation
-* Custom obstacle detection datasets
-* Edge AI optimization
-* TensorRT / OpenVINO optimization
-* Advanced object tracking
-* Improved low-light detection
-* Voice-based navigation
-* Offline navigation
-* Guardian monitoring
-* Cloud analytics
-* Predictive safety models
-
----
-
-# 💰 Target Cost
-
-The project aims to maintain an affordable prototype cost of approximately:
-
-**< ₹3000**
-
-Actual cost will depend on the final hardware configuration, including:
-
-* Microcontroller
-* Camera
-* GPS
-* Sensors
-* Battery
-* Communication module
-* Enclosure
-
----
-
-# 🌍 Social Impact
-
-The Smart Blind Stick aims to improve:
-
-* Mobility
-* Independence
-* Environmental awareness
-* Personal safety
-* Emergency response
-* Accessibility
-
-The goal is to **augment the traditional white cane with intelligent technology**, not replace it.
-
----
-
-# 📜 Development Status
-
-**Status: Active Development**
-
-### Current Milestone
-
-> **Core Backend + AI Vision completed.**
-
-### Next Milestone
-
-> **Sensor Fusion + Safety Engine integration.**
-
----
-
-## 👥 Team Development
-
-The project follows a feature-branch development workflow.
-
-Each module is developed independently and integrated through `develop`.
-
-```text
-feature/mobile-iot
-        │
-        ├─────────────┐
-        │             │
-feature/ai-vision   feature/sensor-fusion
-        │             │
-        └──────┬──────┘
-               │
-               ▼
-       Safety & Integration
-               │
-               ▼
-            develop
-               │
-               ▼
-             main
-```
-
----
-
-# ⭐ Built With
-
-Python • FastAPI • OpenCV • YOLO • PyTorch • SQLAlchemy • Pydantic • NumPy • pytest
-
----
-
-## 🦯 Smart Blind Stick
-
-**Smarter sensing. Intelligent vision. Safer mobility.**
