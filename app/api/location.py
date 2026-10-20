@@ -19,7 +19,10 @@ def get_latest_location(device_id: str, db: Session = Depends(get_db)):
     if location is None:
         raise HTTPException(status_code=404, detail=f"No location data for device_id '{device_id}'")
 
-    return location
+    res = LocationOut.model_validate(location)
+    res.maps_url = location_service.format_maps_url(location.latitude, location.longitude)
+    return res
+
 
 
 @router.get("/{device_id}/history", response_model=list[LocationHistoryItem])

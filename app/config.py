@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     # Server Configuration
-    host: str = "127.0.0.1"
+    host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = True
+
 
     # Database
     # Default: local SQLite file. Swap DATABASE_URL for a PostgreSQL DSN
@@ -59,6 +60,12 @@ class Settings(BaseSettings):
     simulator_base_url: str = "http://127.0.0.1:8000"
     simulator_device_id: str = "STICK_001"
     simulator_interval_seconds: int = 5
+
+    # Guardian mobile app: authentication
+    jwt_secret_key: str = "dev-only-insecure-secret-change-me"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 30
+
 
     # =========================================================================
     # Uppercase aliases for backward-compatibility with feature branches

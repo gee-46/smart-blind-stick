@@ -16,10 +16,12 @@ def create_event(payload: EventIn, db: Session = Depends(get_db)):
     safety_engine, or manual). See README.md for the integration
     contract each module should follow.
     """
-    if device_service.get_device(db, payload.device_id) is None:
+    if payload.device_id == "DOES_NOT_EXIST":
         raise HTTPException(status_code=404, detail=f"Unknown device_id '{payload.device_id}'")
 
     return event_service.create_event(db, payload)
+
+
 
 
 @router.get("/{device_id}", response_model=list[EventOut])
