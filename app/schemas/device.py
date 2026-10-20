@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class DeviceDataIn(BaseModel):
     """Payload sent periodically by the smart stick (or simulator)."""
     device_id: str = Field(..., min_length=1, max_length=64, examples=["STICK_001"])
-    battery: float = Field(..., ge=0.0, le=100.0, description="Battery percentage 0-100")
+    battery: float | None = Field(default=100.0, ge=0.0, le=100.0, description="Battery percentage 0-100")
     latitude: float = Field(..., ge=-90.0, le=90.0)
     longitude: float = Field(..., ge=-180.0, le=180.0)
     status: str = Field(default="safe", max_length=32, examples=["safe", "moving", "idle", "active"])
@@ -56,3 +56,19 @@ class DeviceStatusResponse(BaseModel):
     last_longitude: float | None = None
     last_fix_quality: int | None = None
     last_satellites: int | None = None
+
+
+class DeviceRegisterIn(BaseModel):
+    """Request to register a device and issue it an API key."""
+    device_id: str = Field(..., min_length=1, max_length=64, examples=["STICK_001"])
+
+
+class DeviceRegisterOut(BaseModel):
+    """
+    Response to a successful registration.
+    `api_key` is the ONLY time the plaintext key is returned.
+    """
+    device_id: str
+    api_key: str
+    message: str = "Store this API key securely. It will not be shown again."
+

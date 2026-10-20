@@ -11,8 +11,18 @@ from app.config import get_settings
 from app.models.device import Device
 from app.models.location import Location
 from app.schemas.device import DeviceDataIn, DeviceStatusResponse
+from app.security import generate_api_key, hash_api_key, verify_api_key
+from app.websocket_manager import manager as ws_manager
 
 settings = get_settings()
+
+
+class DeviceAlreadyRegisteredError(Exception):
+    """Raised when registering a device_id that already has an API key."""
+
+    def __init__(self, device_id: str):
+        self.device_id = device_id
+        super().__init__(f"Device '{device_id}' is already registered.")
 
 
 def is_device_online(device_or_last_seen: Device | Optional[datetime], offline_threshold_seconds: Optional[int] = None) -> bool:
@@ -46,6 +56,7 @@ def upsert_device_data(db: Session, data: DeviceDataIn) -> Device:
     """
     now = datetime.now(timezone.utc)
     device = db.query(Device).filter(Device.device_id == data.device_id).first()
+    is_new_device = device is None
 
     if device is None:
         device = Device(
@@ -90,6 +101,71 @@ def upsert_device_data(db: Session, data: DeviceDataIn) -> Device:
         )
         db.add(location)
 
+    db.commit()
+    db.refresh(device)
+
+    ws_manager.broadcast_sync(
+        data.device_id,
+        {
+            "type": "device_online" if is_new_device else "location_update",
+            "device_id": data.device_id,
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "timestamp": now,
+        },
+    )
+    ws_manager.broadcast_sync(
+        data.device_id,
+        {
+            "type": "battery_update",
+            "device_id": data.device_id,
+            "battery": data.battery,
+            "timestamp": now,
+        },
+    )
+    return device
+
+
+def register_device(db: Session, device_id: str) -> tuple[Device, str]:
+    """
+    Register a device and issue it a new API key.
+    """
+    device = get_device(db, device_id)
+    if device is not None and device.api_key_hash is not None:
+        raise DeviceAlreadyRegisteredError(device_id)
+
+    if device is None:
+        device = Device(device_id=device_id)
+        db.add(device)
+
+    plaintext_key = generate_api_key()
+    device.api_key_hash = hash_api_key(plaintext_key)
+
+    db.commit()
+    db.refresh(device)
+    return device, plaintext_key
+
+
+def verify_device_credentials(db: Session, device_id: str, api_key: str) -> Device | None:
+    """
+    Returns the Device if device_id exists, is registered, and api_key matches it.
+    """
+    device = get_device(db, device_id)
+    if device is None or device.api_key_hash is None:
+        return None
+    if not verify_api_key(api_key, device.api_key_hash):
+        return None
+    return device
+
+
+def record_heartbeat(db: Session, device_id: str) -> Device | None:
+    """
+    Lightweight liveness update for WebSocket heartbeat messages.
+    """
+    device = get_device(db, device_id)
+    if device is None:
+        return None
+    device.last_seen = datetime.now(timezone.utc)
     db.commit()
     db.refresh(device)
     return device

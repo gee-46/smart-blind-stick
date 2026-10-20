@@ -26,6 +26,8 @@ class Device(Base):
 
     battery: Mapped[float | None] = mapped_column(Float, nullable=True, default=100.0)
     status: Mapped[str | None] = mapped_column(String(32), nullable=True, default="active")
+    api_key_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
 
     # Cached last known coordinates
     last_latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
