@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "DrishtiGuard Guardian",
+    "slug": "drishtiguard-guardian",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "drishtiguard",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.drishtiguard.guardian",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"],
+        "NSLocationWhenInUseUsageDescription": "DrishtiGuard uses your location only to center the map near your Smart Blind Stick's last known position."
+      }
+    },
+    "android": {
+      "package": "com.drishtiguard.guardian",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1F3A",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "NOTIFICATIONS"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#0B1F3A"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {}
+    }
+  }
+}
