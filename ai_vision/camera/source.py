@@ -5,7 +5,7 @@ Provides a single, uniform interface -- `.read()` / `.release()` -- over
 four different frame sources, so the rest of the pipeline never needs to
 know or care where frames are coming from:
 
-    - a live webcam / USB camera / future Raspberry Pi camera (by index)
+    - a live webcam / USB camera / ESP32-CAM stream (by index/URL)
     - a video file (mp4, avi, ...)
     - a single static image (repeated, useful for quick tests/demos)
     - a mock generator (synthetic frames, for hardware-free development)

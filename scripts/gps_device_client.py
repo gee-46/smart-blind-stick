@@ -1,32 +1,9 @@
 """
 Real GPS device client.
 
-Runs on the Raspberry Pi / microcontroller the stick's GPS module is
-wired to. Reads real position fixes via scripts/gps_reader.py and posts
-them to the backend's existing /api/device/data endpoint -- the same
-endpoint the mock simulator (scripts/simulate_device.py) uses, so no
-backend changes are needed to go from mock to real hardware.
-
-This is the hardware counterpart to simulate_device.py:
-    simulate_device.py    -> fake GPS, for developing/testing without hardware
-    gps_device_client.py  -> real GPS, for running on the actual stick
-
---------------------------------------------------------------------------
-Setup
---------------------------------------------------------------------------
-1. Wire the GPS module (see the top of scripts/gps_reader.py for pin-out).
-2. On Raspberry Pi, enable the hardware UART via `sudo raspi-config` and
-   reboot (see gps_reader.py docstring for exact steps).
-3. Install hardware-only dependencies (already in requirements.txt):
-       pip install -r requirements.txt
-4. Run:
-       python scripts/gps_device_client.py --device-id STICK_001
-
-If the backend is running on a different machine than the stick's Pi
-(recommended for real use -- e.g. backend on a server, Pi on the stick),
-pass --base-url pointing at it, e.g.:
-       python scripts/gps_device_client.py --base-url http://192.168.1.50:8000
---------------------------------------------------------------------------
+Reads real position fixes via scripts/gps_reader.py from an attached
+NEO-6M GPS receiver or USB-UART bridge and posts them to the backend's
+existing /api/device/data endpoint.
 """
 import argparse
 import os
@@ -35,7 +12,15 @@ from datetime import datetime
 
 import requests
 
-from gps_reader import NEO6MGPSReader, fix_quality_label
+try:
+    from scripts.gps_reader import NEO6MGPSReader, fix_quality_label
+except ImportError:
+    from gps_reader import NEO6MGPSReader, fix_quality_label
+
+try:
+    import serial.tools.list_ports
+except ImportError:
+    serial = None
 
 DEFAULT_BASE_URL = os.getenv("SIMULATOR_BASE_URL", "http://127.0.0.1:8000")
 DEFAULT_DEVICE_ID = os.getenv("SIMULATOR_DEVICE_ID", "STICK_001")
@@ -102,6 +87,13 @@ def main() -> None:
         reader = NEO6MGPSReader(port=args.port, baudrate=args.baud, timeout=1.0)
     except Exception as exc:
         log(f"Could not open serial port '{args.port}': {exc}")
+        if serial and hasattr(serial, "tools") and hasattr(serial.tools, "list_ports"):
+            ports = [p.device for p in serial.tools.list_ports.comports()]
+            if ports:
+                log(f"Detected available serial ports on this machine: {', '.join(ports)}")
+                log(f"Try running with: --port {ports[0]}")
+            else:
+                log("No active serial ports detected. Check USB/UART physical connections.")
         log("Check wiring, port name, and that the UART is enabled (see gps_reader.py docstring).")
         return
 

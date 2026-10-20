@@ -5,7 +5,7 @@ Draws each tracked detection's box + label ("CAR 94% ID:7 2.1m RIGHT
 APPROACHING") onto a frame using OpenCV. Entirely optional -- the rest of
 the pipeline (`VisionService`, camera, detector, tracker, estimation) has
 no dependency on this module and runs perfectly headless, which is
-required for future embedded/Raspberry-Pi deployment with no display
+required for headless server or edge deployment with no display
 attached.
 """
 from __future__ import annotations

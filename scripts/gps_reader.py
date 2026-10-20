@@ -9,25 +9,16 @@ standalone, testable unit: read raw NMEA sentences off a serial port and
 turn them into a `GPSFix`.
 
 --------------------------------------------------------------------------
-Wiring (Raspberry Pi example, NEO-6M module)
+Wiring (USB-to-UART or ESP32 UART bridge, NEO-6M module)
 --------------------------------------------------------------------------
-    GPS module      Raspberry Pi
-    -----------      ------------
-    VCC        ->    5V (or 3.3V, check your module's datasheet)
+    GPS module      USB-UART / Microcontroller
+    -----------      --------------------------
+    VCC        ->    5V or 3.3V
     GND        ->    GND
-    TX         ->    GPIO15 / RXD (pin 10)
-    RX         ->    GPIO14 / TXD (pin 8)
-
-Before this will work on a Pi you must free up the hardware UART:
-    sudo raspi-config
-      -> Interface Options -> Serial Port
-         "Login shell over serial?"      -> No
-         "Enable serial port hardware?"  -> Yes
-    sudo reboot
-
-The module will then be available at /dev/serial0 (the default `port`
-below). On other boards/USB GPS dongles it's typically /dev/ttyUSB0 or
-/dev/ttyACM0 (Linux/Pi) or COM3 etc. (Windows) -- pass `--port` to
+    TX         ->    RX
+    RX         ->    TX
+On USB GPS dongles or CP2102/CH340 bridges it's typically /dev/ttyUSB0 or
+/dev/ttyACM0 (Linux) or COM3, COM4 etc. (Windows) -- pass `--port` to
 scripts/gps_device_client.py accordingly.
 
 --------------------------------------------------------------------------

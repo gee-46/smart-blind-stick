@@ -56,15 +56,33 @@ MOBILITY_RELEVANT_CLASSES: tuple[str, ...] = (
     "dog",
     "cat",
     "chair",
+    "pole",
+    "tree",
+    "staircase",
+    "door",
+    "wall",
+)
+
+# Canonical 10 target classes specified for Smart Blind Stick AI Vision:
+# people, vehicles, bicycles, motorcycles, poles, trees, staircases, doors, chairs, and walls.
+TARGET_MOBILITY_CLASSES: tuple[str, ...] = (
+    "person",
+    "vehicle",
+    "bicycle",
+    "motorcycle",
+    "pole",
+    "tree",
+    "staircase",
+    "door",
+    "chair",
+    "wall",
 )
 
 # Classes grouped as "vehicle" for movement/approaching-vehicle logic.
-VEHICLE_CLASSES: tuple[str, ...] = ("car", "motorcycle", "bus", "truck")
+VEHICLE_CLASSES: tuple[str, ...] = ("car", "motorcycle", "bus", "truck", "vehicle")
 
 # Approximate real-world reference heights (meters), used only by the
-# monocular distance estimator (estimation/distance.py). These are rough
-# population averages, NOT measurements of any specific detected object --
-# see that module's docstring for the accuracy implications.
+# monocular distance estimator (estimation/distance.py).
 DEFAULT_REFERENCE_HEIGHTS_M: dict[str, float] = {
     "person": 1.7,
     "bicycle": 1.1,
@@ -72,15 +90,53 @@ DEFAULT_REFERENCE_HEIGHTS_M: dict[str, float] = {
     "motorcycle": 1.3,
     "bus": 3.2,
     "truck": 2.8,
+    "vehicle": 1.6,
     "traffic light": 3.0,
     "stop sign": 2.1,
     "bench": 0.9,
     "dog": 0.5,
     "cat": 0.3,
     "chair": 0.9,
+    "pole": 2.6,
+    "tree": 3.2,
+    "staircase": 1.4,
+    "door": 2.1,
+    "wall": 2.5,
 }
+
+CLASS_MAPPING_TO_TARGET: dict[str, str] = {
+    "person": "person",
+    "car": "vehicle",
+    "bus": "vehicle",
+    "truck": "vehicle",
+    "vehicle": "vehicle",
+    "bicycle": "bicycle",
+    "motorcycle": "motorcycle",
+    "traffic light": "pole",
+    "stop sign": "pole",
+    "fire hydrant": "pole",
+    "parking meter": "pole",
+    "pole": "pole",
+    "tree": "tree",
+    "potted plant": "tree",
+    "staircase": "staircase",
+    "stairs": "staircase",
+    "door": "door",
+    "chair": "chair",
+    "bench": "chair",
+    "couch": "chair",
+    "wall": "wall",
+    "barrier": "wall",
+}
+
+
+def normalize_target_class(raw_class: str) -> str:
+    """Map any detection label to one of the 10 canonical mobility target classes."""
+    cleaned = raw_class.strip().lower()
+    return CLASS_MAPPING_TO_TARGET.get(cleaned, cleaned)
 
 
 def class_name_for_id(class_id: int) -> str | None:
     """Look up a COCO class name by id, or None if unknown."""
     return COCO_CLASSES.get(class_id)
+
