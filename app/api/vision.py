@@ -11,6 +11,7 @@ disconnected, returns an honest 'vision_unavailable' status with full
 diagnostic reasons.
 """
 import hashlib
+import importlib.util
 import logging
 import os
 import sys
@@ -59,6 +60,19 @@ _detector_lock = threading.Lock()
 _detector_status = "uninitialized"
 _detector_failure_reason: Optional[str] = None
 _resolved_weights_path: Optional[str] = None
+
+
+def is_package_installed(package_name: str) -> bool:
+    """
+    Lightweight check for package availability WITHOUT importing heavy modules,
+    allocating C runtime memory, or making network calls.
+    """
+    if package_name in sys.modules:
+        return sys.modules[package_name] is not None
+    try:
+        return importlib.util.find_spec(package_name) is not None
+    except Exception:
+        return False
 
 
 def get_memory_limit_mb() -> Tuple[Optional[float], str]:
@@ -217,7 +231,6 @@ def resolve_model_weights(allow_download: bool = False) -> Tuple[Optional[str], 
             logger.error(err)
             return None, err
 
-        # Verify checksum if official URL was used
         if computed_sha != OFFICIAL_WEIGHTS_SHA256:
             logger.warning(
                 "Downloaded weights SHA256 (%s) differs from pinned reference (%s).",
@@ -245,26 +258,16 @@ def log_vision_startup_diagnostics():
     """
     Informative, non-blocking startup diagnostics for AI Vision.
     Safely logs environment, dependencies, memory headroom, and weights availability.
-    Does NOT log any secrets.
+    Does NOT import heavy deep learning packages or execute network calls.
     """
     logger.info("=== Smart Blind Stick AI Vision Subsystem Startup Diagnostics ===")
     logger.info("NumPy: %s", "AVAILABLE" if np is not None else "NOT INSTALLED")
     logger.info("OpenCV: %s", "AVAILABLE" if cv2 is not None else "NOT INSTALLED")
 
-    torch_avail = False
-    try:
-        import torch  # noqa: F401
-        torch_avail = True
-    except ImportError:
-        pass
+    torch_avail = is_package_installed("torch")
     logger.info("PyTorch: %s", "AVAILABLE" if torch_avail else "NOT INSTALLED")
 
-    ultralytics_avail = False
-    try:
-        from ultralytics import YOLO  # noqa: F401
-        ultralytics_avail = True
-    except ImportError:
-        pass
+    ultralytics_avail = is_package_installed("ultralytics")
     logger.info("Ultralytics: %s", "AVAILABLE" if ultralytics_avail else "NOT INSTALLED")
 
     mem_mb, source = get_memory_limit_mb()
@@ -280,11 +283,29 @@ def log_vision_startup_diagnostics():
         logger.info("Memory Limit: Unconstrained / Not reported")
 
     weights_path, _ = resolve_model_weights(allow_download=False)
-    if weights_path:
-        logger.info("Model Weights: PRESENT at %s (size: %.2f MB)", weights_path, os.path.getsize(weights_path) / (1024 * 1024))
+    if weights_path and os.path.exists(weights_path):
+        try:
+            sz_mb = os.path.getsize(weights_path) / (1024 * 1024)
+            logger.info("Model Weights: PRESENT at %s (size: %.2f MB)", weights_path, sz_mb)
+        except OSError:
+            logger.info("Model Weights: PRESENT at %s", weights_path)
     else:
-        logger.info("Model Weights: NOT PRE-LOADED (will be fetched deterministically on first inference if resources permit)")
+        logger.info("Model Weights: NOT PRE-LOADED (will be fetched lazily on first inference if resources permit)")
     logger.info("==================================================================")
+
+
+
+def schedule_background_vision_init():
+    """
+    Spawns an asynchronous background thread for diagnostics.
+    Guarantees the main Uvicorn event loop immediately proceeds to port binding.
+    """
+    thread = threading.Thread(
+        target=log_vision_startup_diagnostics,
+        name="ai_vision_startup_diag",
+        daemon=True,
+    )
+    thread.start()
 
 
 def get_detector():
@@ -327,13 +348,10 @@ def get_detector():
             return None
 
         # Check PyTorch and Ultralytics
-        try:
-            import torch  # noqa: F401
-            from ultralytics import YOLO  # noqa: F401
-        except ImportError as exc:
+        if not is_package_installed("torch") or not is_package_installed("ultralytics"):
             _detector_status = "vision_unavailable"
             _detector_failure_reason = (
-                f"PyTorch or Ultralytics dependencies not installed: {str(exc)}. "
+                "PyTorch or Ultralytics dependencies not installed in runtime environment. "
                 "Install with 'pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu' "
                 "and 'pip install ultralytics'."
             )
@@ -458,7 +476,6 @@ async def infer_frame(
     frame_width = frame.shape[1]
 
     for det in raw_detections:
-        # Support both det.bbox (Detection schema) and det.box
         bbox = getattr(det, "bbox", getattr(det, "box", None))
         if bbox is None:
             continue
@@ -485,7 +502,7 @@ async def infer_frame(
             },
         })
 
-        # If a critical object is detected (e.g. vehicle, truck, bus), relay genuine event
+        # Relay genuine event for critical obstacles
         if det.class_name in ("car", "bus", "truck", "motorcycle", "person") and det.confidence >= 0.70:
             try:
                 event_in = EventIn(
@@ -518,30 +535,53 @@ async def infer_frame(
 
 @router.get("/status")
 def get_vision_status():
-    """Return runtime status and diagnostics of the AI Vision inference service."""
-    detector = get_detector()
-    is_ready = detector is not None and np is not None and cv2 is not None
+    """
+    Return runtime status and diagnostics of the AI Vision inference service.
+    Completely non-blocking: never triggers weights download or model loading synchronously.
+    """
+    global _detector, _detector_status, _detector_failure_reason
+    is_ready = _detector is not None and np is not None and cv2 is not None
 
-    torch_available = False
-    try:
-        import torch  # noqa: F401
-        torch_available = True
-    except ImportError:
-        pass
-
-    ultralytics_available = False
-    try:
-        from ultralytics import YOLO  # noqa: F401
-        ultralytics_available = True
-    except ImportError:
-        pass
-
+    torch_available = is_package_installed("torch")
+    ultralytics_available = is_package_installed("ultralytics")
     weights_path, _ = resolve_model_weights(allow_download=False)
-    mem_mb, _ = get_memory_limit_mb()
+    mem_mb, source = get_memory_limit_mb()
+
+    if is_ready:
+        status_label = "ready"
+        diagnostic_reason = None
+    elif mem_mb is not None and mem_mb < CGROUP_OOM_THRESHOLD_MB and os.getenv("FORCE_LOAD_VISION", "false").lower() not in ("true", "1"):
+        status_label = "vision_unavailable"
+        diagnostic_reason = (
+            f"Render 512MB free instance has insufficient RAM ({mem_mb:.0f} MB detected via {source}) "
+            "for PyTorch YOLOv8n inference (requires >= 1.5 GB RAM). Vision is placed in standby "
+            "to protect core safety services (GPS/SOS)."
+        )
+    elif np is None or cv2 is None:
+        status_label = "vision_unavailable"
+        missing = []
+        if np is None:
+            missing.append("NumPy")
+        if cv2 is None:
+            missing.append("OpenCV")
+        diagnostic_reason = f"Required dependencies ({', '.join(missing)}) are missing."
+    elif not torch_available or not ultralytics_available:
+        status_label = "vision_unavailable"
+        diagnostic_reason = (
+            "PyTorch or Ultralytics dependencies not installed in runtime environment. "
+            "Install with 'pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu' "
+            "and 'pip install ultralytics'."
+        )
+    elif not weights_path:
+        status_label = "vision_unavailable"
+        diagnostic_reason = _detector_failure_reason or "YOLOv8n model weights are not loaded."
+    else:
+        status_label = "vision_unavailable"
+        diagnostic_reason = _detector_failure_reason or "Model is not loaded. Will initialize on first inference."
 
     return {
         "model_version": _model_version,
-        "status": "ready" if is_ready else "vision_unavailable",
+        "status": status_label,
         "classes_supported": 80,
         "device": "cpu",
         "numpy_available": np is not None,
@@ -550,5 +590,5 @@ def get_vision_status():
         "ultralytics_available": ultralytics_available,
         "weights_present": weights_path is not None,
         "memory_limit_mb": mem_mb,
-        "reason": _detector_failure_reason,
+        "reason": diagnostic_reason,
     }

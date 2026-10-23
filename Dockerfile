@@ -27,12 +27,14 @@ RUN groupadd -g 1000 appgroup && \
 
 WORKDIR /app
 
-# Install Python dependencies first to leverage Docker layer caching
+# Install Python dependencies first to leverage Docker layer caching.
+# Use --no-deps when installing ultralytics so pip utilizes the pre-installed
+# opencv-python-headless distribution rather than pulling conflicting GUI opencv-python.
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir "ultralytics>=8.2.0,<8.3.0"
+    pip install --no-cache-dir --no-deps "ultralytics>=8.2.0,<8.3.0"
 
 # Create persistent storage directory and models directory
 # Pre-fetch official YOLOv8n weights into /app/models during container build
@@ -52,9 +54,9 @@ USER appuser
 # Expose dynamic application port
 EXPOSE 8000
 
-# Docker healthcheck against backend /health endpoint
+# Docker healthcheck against backend /health endpoint (prompt, lightweight, no model dependency)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Production startup: binds to 0.0.0.0 and honors $PORT from hosting provider
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Production startup: binds to 0.0.0.0 and honors $PORT from hosting provider with 8000 default
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

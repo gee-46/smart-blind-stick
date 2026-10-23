@@ -3,7 +3,7 @@ services:
     name: smart-blind-stick-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
     healthCheckPath: /health
     autoDeploy: true
     envVars:

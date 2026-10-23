@@ -9,9 +9,11 @@ Verifies:
   RAM is constrained (e.g. Render 512 MB Free Tier). Never fabricates detections.
 - Regression tests for missing weights, missing torch/ultralytics dependencies,
   initialization errors, memory limits, and singleton model reuse across requests.
+- Startup lightweight verification: health checks remain instant and unblocked.
 """
 import logging
 import sys
+import time
 from unittest.mock import MagicMock
 import pytest
 
@@ -38,6 +40,21 @@ def reset_vision_state():
     vision_module._resolved_weights_path = None
 
 
+def test_health_endpoint_fast_and_independent_of_vision(client):
+    """
+    Verifies that /health responds immediately with HTTP 200 without requiring
+    any model to load or blocking on vision dependencies.
+    """
+    reset_vision_state()
+    start = time.perf_counter()
+    response = client.get("/health")
+    elapsed_ms = (time.perf_counter() - start) * 1000.0
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "healthy"}
+    assert elapsed_ms < 500.0  # Must be fast and non-blocking
+
+
 def test_vision_status_endpoint(client):
     response = client.get("/api/vision/status")
     assert response.status_code == 200
@@ -51,6 +68,33 @@ def test_vision_status_endpoint(client):
     assert "torch_available" in data
     assert "ultralytics_available" in data
     assert "weights_present" in data
+
+
+def test_vision_status_does_not_trigger_synchronous_weights_download(client, monkeypatch):
+    """
+    Verifies that calling /api/vision/status never triggers synchronous weights download.
+    """
+    reset_vision_state()
+    download_attempted = {"count": 0}
+
+    def tracking_resolver(allow_download=False):
+        if allow_download:
+            download_attempted["count"] += 1
+        return None, "Not found"
+
+    monkeypatch.setattr(vision_module, "resolve_model_weights", tracking_resolver)
+    res = client.get("/api/vision/status")
+    assert res.status_code == 200
+    assert download_attempted["count"] == 0  # No download should be attempted for status check
+
+
+def test_package_presence_probe_does_not_import_modules():
+    """
+    Verifies is_package_installed checks package presence via find_spec
+    without importing non-existent or unimported packages.
+    """
+    assert vision_module.is_package_installed("non_existent_fake_package_xyz") is False
+    assert vision_module.is_package_installed("json") is True
 
 
 def test_vision_infer_rejects_empty_file(client):
@@ -117,7 +161,7 @@ def test_vision_missing_dependencies_regression(client, monkeypatch):
     """
     reset_vision_state()
     monkeypatch.setattr(vision_module, "get_memory_limit_mb", lambda: (2048.0, "cgroup_v2"))
-    monkeypatch.setitem(sys.modules, "torch", None)
+    monkeypatch.setattr(vision_module, "is_package_installed", lambda pkg: False)
 
     status_res = client.get("/api/vision/status")
     assert status_res.status_code == 200
@@ -132,25 +176,13 @@ def test_vision_missing_weights_regression(client, monkeypatch):
     endpoints must report vision_unavailable with clear explanation.
     """
     reset_vision_state()
-    # Mock torch & ultralytics so dependency check passes
-    monkeypatch.setitem(sys.modules, "torch", MagicMock())
-    mock_ultralytics = MagicMock()
-    mock_ultralytics.YOLO = MagicMock()
-    monkeypatch.setitem(sys.modules, "ultralytics", mock_ultralytics)
-
+    monkeypatch.setattr(vision_module, "is_package_installed", lambda pkg: True)
     monkeypatch.setattr(vision_module, "get_memory_limit_mb", lambda: (2048.0, "cgroup_v2"))
     monkeypatch.setattr(
         vision_module,
         "resolve_model_weights",
         lambda allow_download=True: (None, "YOLOv8n checkpoint not found on disk or network."),
     )
-
-    status_res = client.get("/api/vision/status")
-    assert status_res.status_code == 200
-    status_data = status_res.json()
-    assert status_data["status"] == "vision_unavailable"
-    assert status_data["weights_present"] is False
-    assert "YOLOv8n" in (status_data["reason"] or "")
 
     file_payload = {"file": ("test.jpg", VALID_JPEG_BYTES, "image/jpeg")}
     infer_res = client.post("/api/vision/infer", files=file_payload)
@@ -160,6 +192,13 @@ def test_vision_missing_weights_regression(client, monkeypatch):
     assert infer_data["detections"] == []
     assert "Vision inference model not loaded or weights unavailable" in infer_data["message"]
 
+    status_res = client.get("/api/vision/status")
+    assert status_res.status_code == 200
+    status_data = status_res.json()
+    assert status_data["status"] == "vision_unavailable"
+    assert status_data["weights_present"] is False
+    assert "YOLOv8n" in (status_data["reason"] or "")
+
 
 def test_vision_model_initialization_error_regression(client, monkeypatch):
     """
@@ -167,11 +206,7 @@ def test_vision_model_initialization_error_regression(client, monkeypatch):
     vision API safely captures the error, logs it, and does not crash the server.
     """
     reset_vision_state()
-    monkeypatch.setitem(sys.modules, "torch", MagicMock())
-    mock_ultralytics = MagicMock()
-    mock_ultralytics.YOLO = MagicMock()
-    monkeypatch.setitem(sys.modules, "ultralytics", mock_ultralytics)
-
+    monkeypatch.setattr(vision_module, "is_package_installed", lambda pkg: True)
     monkeypatch.setattr(vision_module, "get_memory_limit_mb", lambda: (2048.0, "cgroup_v2"))
     monkeypatch.setattr(
         vision_module,
@@ -186,18 +221,18 @@ def test_vision_model_initialization_error_regression(client, monkeypatch):
 
     monkeypatch.setattr(det_module, "YoloDetector", mock_broken_detector)
 
-    status_res = client.get("/api/vision/status")
-    assert status_res.status_code == 200
-    status_data = status_res.json()
-    assert status_data["status"] == "vision_unavailable"
-    assert "Simulated corrupt PyTorch" in (status_data["reason"] or "")
-
     file_payload = {"file": ("test.jpg", VALID_JPEG_BYTES, "image/jpeg")}
     infer_res = client.post("/api/vision/infer", files=file_payload)
     assert infer_res.status_code == 200
     infer_data = infer_res.json()
     assert infer_data["status"] == "vision_unavailable"
     assert "Simulated corrupt PyTorch" in infer_data["message"]
+
+    status_res = client.get("/api/vision/status")
+    assert status_res.status_code == 200
+    status_data = status_res.json()
+    assert status_data["status"] == "vision_unavailable"
+    assert "Simulated corrupt PyTorch" in (status_data["reason"] or "")
 
 
 def test_vision_memory_limit_standby_on_render_512mb(client, monkeypatch):
@@ -231,10 +266,7 @@ def test_vision_model_loaded_once_and_reused_singleton(client, monkeypatch):
     across multiple consecutive requests without reloading.
     """
     reset_vision_state()
-    monkeypatch.setitem(sys.modules, "torch", MagicMock())
-    mock_ultralytics = MagicMock()
-    mock_ultralytics.YOLO = MagicMock()
-    monkeypatch.setitem(sys.modules, "ultralytics", mock_ultralytics)
+    monkeypatch.setattr(vision_module, "is_package_installed", lambda pkg: True)
 
     mock_detector = MagicMock()
     mock_detector.detect.return_value = []

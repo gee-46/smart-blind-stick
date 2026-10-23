@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
     try:
-        from app.api.vision import log_vision_startup_diagnostics
-        log_vision_startup_diagnostics()
+        from app.api.vision import schedule_background_vision_init
+        schedule_background_vision_init()
     except Exception:
         pass
     yield
@@ -94,6 +94,14 @@ app.include_router(contacts.router)
 app.include_router(contacts.push_router)
 app.include_router(websocket.router)
 app.include_router(vision.router)
+
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+
+    server_port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=server_port)
 
 
 
