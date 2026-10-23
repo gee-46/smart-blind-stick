@@ -28,7 +28,13 @@ async def lifespan(app: FastAPI):
         websocket_manager.main_event_loop = asyncio.get_running_loop()
     except Exception:
         pass
+    try:
+        from app.api.vision import log_vision_startup_diagnostics
+        log_vision_startup_diagnostics()
+    except Exception:
+        pass
     yield
+
 
 
 

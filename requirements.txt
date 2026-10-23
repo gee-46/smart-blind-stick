@@ -24,3 +24,9 @@ psycopg2-binary>=2.9.9
 numpy>=1.26.0,<3.0.0
 opencv-python-headless>=4.8.0.76
 
+# AI Vision Deep Learning Inference (Installed in Dockerfile for hosts with >= 1.5 GB RAM)
+# On low-RAM hosts (e.g. Render 512 MB Free Tier), backend safely pauses vision in standby
+# to protect core GPS and Emergency SOS services from Linux kernel OOM termination.
+# CPU installation command:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   pip install "ultralytics>=8.2.0,<8.3.0"

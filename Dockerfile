@@ -9,7 +9,8 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
-    DATA_DIR=/app/data
+    DATA_DIR=/app/data \
+    AI_VISION_MODEL_PATH=/app/models/yolov8n.pt
 
 # Install minimal OS dependencies for compilation and OpenCV compatibility
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,10 +30,15 @@ WORKDIR /app
 # Install Python dependencies first to leverage Docker layer caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir "ultralytics>=8.2.0,<8.3.0"
 
-# Create persistent storage directory for SQLite/file database fallback
-RUN mkdir -p /app/data && chown -R appuser:appgroup /app/data
+# Create persistent storage directory and models directory
+# Pre-fetch official YOLOv8n weights into /app/models during container build
+RUN mkdir -p /app/data /app/models && \
+    curl -sSL -o /app/models/yolov8n.pt https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt && \
+    chown -R appuser:appgroup /app/data /app/models
 
 # Copy application source code
 COPY --chown=appuser:appgroup . .
