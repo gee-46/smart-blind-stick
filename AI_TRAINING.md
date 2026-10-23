@@ -18,22 +18,26 @@
 
 ## 2. Supported Mobility Classes & Categories
 
-While the COCO-trained YOLOv8n model supports 80 classes, DrishtiGuard prioritizes key obstacle and hazard categories (defined in `ai_vision/detection/classes.py`):
+While the standard COCO-trained YOLOv8n model supports 80 generic classes, DrishtiGuard filters and consolidates detections into the **10 Canonical Assistive Mobility Classes** defined in [ai_vision/detection/classes.py](file:///c:/Users/Dell/Downloads/smart-blind-stick-ai-vision/ai_vision/detection/classes.py):
 
-1. **Approaching Vehicles (Critical Priority)**:
-   - `car`, `bus`, `truck`, `motorcycle`, `bicycle`
-2. **Pedestrians & Vulnerable Road Users**:
-   - `person`
-3. **Urban Navigation Obstacles (Medium Priority)**:
-   - `traffic light`, `fire hydrant`, `stop sign`, `parking meter`, `bench`, `chair`
-4. **Domestic Obstacles**:
-   - `dog`, `cat`, `suitcase`, `potted plant`, `couch`, `tv`
+| Canonical Class | COCO Source Labels | Priority | Default Reference Height ($H_{real}$) |
+| :--- | :--- | :--- | :--- |
+| **`person`** | `person` | High | 1.7 m |
+| **`vehicle`** | `car`, `bus`, `truck` | Critical (approaching) | 1.6 m (car: 1.5m, bus: 3.2m, truck: 2.8m) |
+| **`bicycle`** | `bicycle` | High | 1.1 m |
+| **`motorcycle`** | `motorcycle` | High | 1.3 m |
+| **`pole`** | `pole`, `traffic light`, `stop sign`, `fire hydrant`, `parking meter` | Medium | 2.6 m (sign: 2.1m, light: 3.0m) |
+| **`tree`** | `tree`, `potted plant` | Medium | 3.2 m |
+| **`staircase`** | `staircase`, `steps` | High | 1.4 m |
+| **`door`** | `door` | Medium | 2.1 m |
+| **`chair`** | `chair`, `bench`, `couch` | Low / Info | 0.9 m |
+| **`wall`** | `wall`, `barrier` | High | 2.5 m |
 
 ---
 
-## 3. Custom Training Workflow
+## 3. Custom Training & Fine-Tuning Workflow
 
-To fine-tune YOLOv8n on specialized assistive mobility datasets (e.g., ground-level curbs, potholes, staircase ascents/descents, overhanging tree branches):
+To fine-tune YOLOv8n on specialized assistive mobility datasets (incorporating ground-level hazards such as curbs, potholes, construction trenches, and descending stairs):
 
 ### 3.1 Dataset Preparation
 Structure your dataset according to the standard YOLO directory layout:
@@ -50,7 +54,7 @@ dataset/
     └── test/
 ```
 
-Example `data.yaml`:
+Complete `data.yaml` schema for Assistive Mobility + Ground Hazards:
 ```yaml
 path: ./dataset
 train: images/train
@@ -61,14 +65,21 @@ names:
   0: person
   1: vehicle
   2: bicycle
-  3: pothole
-  4: curb
-  5: staircase
-  6: obstacle
+  3: motorcycle
+  4: pole
+  5: tree
+  6: staircase
+  7: door
+  8: chair
+  9: wall
+  10: pothole
+  11: curb
+  12: dropoff
+  13: construction_barrier
 ```
 
 ### 3.2 Reproducible Training Command
-Run the training pipeline with fixed seed for determinism:
+Run the training pipeline with fixed random seeds for strict determinism:
 ```bash
 yolo task=detect mode=train \
   model=yolov8n.pt \
@@ -98,23 +109,41 @@ Required Metrics to Document:
 - Confusion Matrix
 - Average latency per frame (ms)
 
-### 3.4 Model Deployment
-Copy the verified weights into the models directory:
-```bash
-cp runs/train/drishtiguard_custom/weights/best.pt models/yolov8n.pt
-```
+### 3.4 Model Deployment & Edge Export
+1. **Local PyTorch Deployment**:
+   ```bash
+   cp runs/train/drishtiguard_custom/weights/best.pt models/yolov8n.pt
+   ```
+   Update `AI_VISION_MODEL_PATH` in `.env`:
+   ```ini
+   AI_VISION_MODEL_PATH=models/yolov8n.pt
+   ```
 
-Update `AI_VISION_MODEL_PATH` in `.env`:
-```ini
-AI_VISION_MODEL_PATH=models/yolov8n.pt
-```
+2. **Edge Companion Export (ONNX / TFLite)**:
+   For execution on low-power edge companion SBCs (Raspberry Pi, Orange Pi, or Jetson Nano):
+   ```bash
+   # Export to ONNX (for ONNX Runtime CPU/GPU execution)
+   yolo export model=models/yolov8n.pt format=onnx imgsz=640 optimize=True
+
+   # Export to TFLite (FP16 or INT8 quantization for edge mobile SBCs)
+   yolo export model=models/yolov8n.pt format=tflite imgsz=640 int8=True
+   ```
 
 ---
 
 ## 4. Distance Estimation vs. LiDAR Physical Truth
 
-Camera-based distance estimation (monocular depth) is computed geometrically in `ai_vision/estimation/distance.py` using known real-world object reference heights and camera focal length:
+Camera-based distance estimation (monocular depth) is computed geometrically in [ai_vision/estimation/distance.py](file:///c:/Users/Dell/Downloads/smart-blind-stick-ai-vision/ai_vision/estimation/distance.py) using known real-world object reference heights and camera focal length:
 
 $$D = \frac{f \times H_{real}}{h_{pixel}}$$
 
+Where:
+- $f$ is the calibrated camera focal length in pixels (~615 px for standard 640x480 OV2640 lens).
+- $H_{real}$ is the canonical reference height for the recognized class in meters.
+- $h_{pixel}$ is the bounding box height in image pixels ($y_{max} - y_{min}$).
+
+### Closing Velocity & Motion Tracking
+Closing velocity ($v = \frac{\Delta D}{\Delta t}$) is estimated across consecutive video frames in `ai_vision/estimation/motion.py`. Any vehicle or approaching obstacle closing at $> 0.5\text{ m/s}$ elevates priority to `CRITICAL (P1)` and triggers high-frequency tactile alerts.
+
 > **SAFETY NOTICE:** Monocular camera distance estimation is an advisory heuristic subject to perspective distortion, camera tilt, and object truncation. **Only the TF-Luna LiDAR sensor measurements are treated as verified physical distance truth for immediate emergency obstacle stops.**
+

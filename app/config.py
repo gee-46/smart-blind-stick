@@ -96,7 +96,16 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        return self.database_url
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        if url == "sqlite:///./smart_blind_stick.db":
+            import os
+            data_dir = os.getenv("DATA_DIR", "/app/data" if os.path.isdir("/app/data") else "")
+            if data_dir and os.path.isdir(data_dir):
+                db_path = os.path.join(data_dir, "smart_blind_stick.db").replace("\\", "/")
+                return f"sqlite:///{db_path}"
+        return url
 
     @property
     def DEVICE_OFFLINE_AFTER_SECONDS(self) -> int:

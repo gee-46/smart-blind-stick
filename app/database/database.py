@@ -35,6 +35,18 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
 
+    # Lightweight non-destructive migration for missing columns on existing SQLite DB
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        if "devices" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("devices")]
+            if "api_key_hash" not in columns:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE devices ADD COLUMN api_key_hash VARCHAR(64)"))
+    except Exception:
+        pass
+
 
 def get_db() -> Generator[Session, None, None]:
     """FastAPI dependency that yields a DB session and closes it after use."""

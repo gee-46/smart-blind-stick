@@ -25,3 +25,12 @@ htmlcov/
 .DS_Store
 .vscode/
 .idea/
+
+# Android build outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/**/.cxx/
+*.apk
+!dist/*.apk

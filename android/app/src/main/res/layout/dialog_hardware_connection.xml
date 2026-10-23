@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/surface_white"
+    android:padding="20dp">
+
+    <!-- Handle drag pill -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="#D1D6CE" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hardware Connectivity"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Connect directly to your ESP32 Smart Blind Stick over Bluetooth or Wi-Fi"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- Current Connection Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="14dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/iv_hw_type_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_bluetooth"
+                app:tint="@color/status_offline" />
+
+            <TextView
+                android:id="@+id/tv_hw_active_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="No Stick Connected"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_hw_active_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Awaiting Connection"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_hw_active_telemetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Telemetry: Inactive (Zero demo data constraint active)"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Bluetooth Hardware Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Bluetooth Connection (ESP32 SPP / BLE)"
+        android:textColor="@color/brand_primary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_scan_bluetooth"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Scan Nearby Devices"
+            android:textAllCaps="false"
+            android:textColor="@color/surface_white"
+            android:backgroundTint="@color/brand_primary"
+            app:cornerRadius="6dp" />
+
+        <Button
+            android:id="@+id/btn_disconnect_bt"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:text="Disconnect"
+            android:textAllCaps="false"
+            android:textColor="@color/status_emergency"
+            app:strokeColor="@color/status_emergency"
+            app:cornerRadius="6dp" />
+    </LinearLayout>
+
+    <!-- Discovered Devices List -->
+    <TextView
+        android:id="@+id/tv_device_list_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Discovered &amp; Paired Devices:"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp" />
+
+    <ListView
+        android:id="@+id/lv_bluetooth_devices"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginTop="4dp"
+        android:divider="#E0E4DC"
+        android:dividerHeight="1dp" />
+
+    <!-- Direct Wi-Fi Stick Connection Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Direct Wi-Fi / SoftAP Connection"
+        android:textColor="@color/brand_primary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/et_wifi_stick_ip"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:hint="Stick IP: 192.168.4.1"
+            android:text="192.168.4.1"
+            android:textSize="13sp"
+            android:inputType="textUri"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:background="@drawable/bg_card" />
+
+        <Button
+            android:id="@+id/btn_test_wifi_stick"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:text="Connect / Ping"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_primary"
+            android:backgroundTint="@color/brand_light"
+            app:cornerRadius="6dp" />
+    </LinearLayout>
+
+    <!-- USB/OTG Connection Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="USB / OTG Wired Serial"
+        android:textColor="@color/brand_primary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:padding="10dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_usb_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="USB OTG: Checking USB Host…"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btn_check_usb"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="end"
+            android:text="Detect USB Device"
+            android:textAllCaps="false"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Diagnostic Hardware Controls -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Hardware Tests &amp; Diagnostics"
+        android:textColor="@color/brand_primary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_test_vibrate"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="Test Haptic"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textColor="@color/brand_primary"
+            app:strokeColor="@color/brand_primary"
+            app:cornerRadius="6dp" />
+
+        <Button
+            android:id="@+id/btn_test_buzzer"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Test Buzzer"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textColor="@color/status_warning"
+            app:strokeColor="@color/status_warning"
+            app:cornerRadius="6dp" />
+
+        <Button
+            android:id="@+id/btn_refresh_status"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Refresh"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textColor="@color/brand_secondary"
+            app:strokeColor="@color/brand_secondary"
+            app:cornerRadius="6dp" />
+    </LinearLayout>
+
+</LinearLayout>

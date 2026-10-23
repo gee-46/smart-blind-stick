@@ -32,6 +32,7 @@
 */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Wire.h>
 #include <HardwareSerial.h>
@@ -39,12 +40,16 @@
 // =============================================================================
 // CONFIGURATION & CREDENTIALS
 // =============================================================================
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";         // Replace with your WiFi SSID
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";     // Replace with your WiFi Password
+// Connect to any internet-enabled network:
+// 1. Mobile Hotspot: configure phone's Personal Hotspot SSID & password
+// 2. Home / Office Wi-Fi: configure router credentials
+const char* WIFI_SSID     = "YOUR_WIFI_SSID";         // Replace with your WiFi or phone hotspot SSID
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";     // Replace with your WiFi or phone hotspot Password
 
-// Backend URL: Replace with your PC/server's local IP (e.g., "http://192.168.1.100:8000")
-const char* BACKEND_BASE_URL = "http://192.168.1.100:8000";
+// Cloud Backend URL: Use public HTTPS cloud URL or local development server
+const char* BACKEND_BASE_URL = "https://smart-blind-stick.onrender.com";
 const char* DEVICE_ID        = "STICK_001";
+const char* DEVICE_API_KEY   = "";                    // Optional API key issued during registration
 
 // Pin Assignments
 const int PIN_TRIG      = 5;
@@ -381,16 +386,29 @@ void connectWiFi() {
 }
 
 void postHTTP(const char* endpoint, const String& jsonPayload) {
-  HTTPClient http;
   String fullUrl = String(BACKEND_BASE_URL) + String(endpoint);
-  http.begin(fullUrl);
-  http.addHeader("Content-Type", "application/json");
 
-  int httpCode = http.POST(jsonPayload);
-  if (httpCode > 0) {
-    // String response = http.getString();
+  if (fullUrl.startsWith("https://")) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure(); // Allows standard cloud TLS connection without hardcoding CA expiration
+    HTTPClient http;
+    http.begin(secureClient, fullUrl);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-Device-Id", DEVICE_ID);
+    if (strlen(DEVICE_API_KEY) > 0) {
+      http.addHeader("X-API-Key", DEVICE_API_KEY);
+    }
+    int httpCode = http.POST(jsonPayload);
+    http.end();
   } else {
-    // Serial.println("[STICK] HTTP POST failed: " + http.errorToString(httpCode));
+    HTTPClient http;
+    http.begin(fullUrl);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-Device-Id", DEVICE_ID);
+    if (strlen(DEVICE_API_KEY) > 0) {
+      http.addHeader("X-API-Key", DEVICE_API_KEY);
+    }
+    int httpCode = http.POST(jsonPayload);
+    http.end();
   }
-  http.end();
 }

@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.SmartBlindStick" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorPrimaryVariant">@color/brand_primary_dark</item>
+        <item name="colorOnPrimary">@color/surface_white</item>
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorSecondaryVariant">@color/brand_primary_light</item>
+        <item name="colorOnSecondary">@color/surface_white</item>
+        <item name="android:statusBarColor">@color/brand_primary</item>
+        <item name="android:navigationBarColor">@color/surface_white</item>
+        <item name="android:windowBackground">@color/bg_base</item>
+    </style>
+</resources>

@@ -1,0 +1,24 @@
+<resources>
+    <color name="brand_primary">#173C35</color>
+    <color name="brand_primary_dark">#122F2A</color>
+    <color name="brand_primary_light">#255249</color>
+    <color name="brand_secondary">#3E7569</color>
+    <color name="brand_light">#E5F2E8</color>
+    
+    <color name="bg_base">#F6F5EF</color>
+    <color name="surface_white">#FFFFFF</color>
+    <color name="surface_sage">#E9EEE7</color>
+    <color name="surface_subtle">#F0F4ED</color>
+    
+    <color name="text_primary">#202722</color>
+    <color name="text_secondary">#69736D</color>
+    <color name="text_muted">#8F9993</color>
+    <color name="border_light">#E0E4DC</color>
+    
+    <color name="status_emergency">#C83E45</color>
+    <color name="status_warning">#A86419</color>
+    <color name="status_success">#287D4A</color>
+    <color name="status_offline">#88928B</color>
+    <color name="status_bluetooth">#1976D2</color>
+    <color name="status_wifi">#388E3C</color>
+</resources>

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: smart-blind-stick-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: RELOAD
+        value: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DEVICE_OFFLINE_AFTER_SECONDS
+        value: "60"
+      - key: NOTIFICATION_ADAPTER
+        value: "mock"
+    disk:
+      name: stick-data
+      mountPath: /app/data
+      sizeGB: 1

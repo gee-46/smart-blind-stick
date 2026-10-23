@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart_blind_stick_api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - RELOAD=false
+      - DATA_DIR=/app/data
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/smart_blind_stick.db}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-this-in-production-to-a-secure-random-32-byte-key}
+      - DEVICE_OFFLINE_AFTER_SECONDS=60
+      - NOTIFICATION_ADAPTER=mock
+    volumes:
+      - stick_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  stick_data:
+    driver: local
