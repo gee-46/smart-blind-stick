@@ -12,7 +12,11 @@ import time
 from datetime import datetime, timezone
 from typing import Optional
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
@@ -65,7 +69,12 @@ async def infer_frame(
     now_iso = datetime.now(timezone.utc).isoformat()
     dev_id = device_id or "STICK_001"
 
-    if cv2 is None:
+    if np is None or cv2 is None:
+        missing = []
+        if np is None:
+            missing.append("NumPy")
+        if cv2 is None:
+            missing.append("OpenCV")
         return {
             "model_version": _model_version,
             "status": "vision_unavailable",
@@ -73,7 +82,7 @@ async def infer_frame(
             "device_id": dev_id,
             "detections": [],
             "latency_ms": 0.0,
-            "message": "OpenCV is not available on server.",
+            "message": f"Vision dependencies ({', '.join(missing)}) are not available on server.",
         }
 
     contents = await file.read()
@@ -193,11 +202,12 @@ async def infer_frame(
 def get_vision_status():
     """Return runtime status of the AI Vision inference service."""
     detector = get_detector()
-    is_ready = detector is not None
+    is_ready = detector is not None and np is not None and cv2 is not None
     return {
         "model_version": _model_version,
         "status": "ready" if is_ready else "vision_unavailable",
         "classes_supported": 80,
         "device": "cpu",
+        "numpy_available": np is not None,
         "opencv_available": cv2 is not None,
     }
