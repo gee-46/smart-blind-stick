@@ -47,7 +47,7 @@ const char* WIFI_SSID     = "YOUR_WIFI_SSID";         // Replace with your WiFi 
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";     // Replace with your WiFi or phone hotspot Password
 
 // Cloud Backend URL: Use public HTTPS cloud URL or local development server
-const char* BACKEND_BASE_URL = "https://smart-blind-stick.onrender.com";
+const char* BACKEND_BASE_URL = "https://smart-blind-stick-chzz.onrender.com";
 const char* DEVICE_ID        = "STICK_001";
 const char* DEVICE_API_KEY   = "";                    // Optional API key issued during registration
 

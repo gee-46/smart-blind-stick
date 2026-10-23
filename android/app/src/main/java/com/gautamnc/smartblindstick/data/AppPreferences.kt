@@ -27,7 +27,7 @@ class AppPreferences(context: Context) {
         get() = try {
             BuildConfig.DEFAULT_BACKEND_URL
         } catch (e: Throwable) {
-            "https://smart-blind-stick.onrender.com/app"
+            "https://smart-blind-stick-chzz.onrender.com/app"
         }
 
     companion object {
